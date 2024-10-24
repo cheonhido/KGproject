@@ -1,0 +1,18 @@
+<script type="text/javascript">
+    window.onload = function() {
+        setTimeout(function(){
+            var userdb = "[[${userdb}]]"; // Thymeleaf로 userdb 객체를 직접 HTML로 렌더링할 수 없습니다.
+            // `userdb` 객체가 있을 경우에는 사용자 정의 메시지를 표시하고 페이지를 리디렉션합니다.
+            if (userdb) {
+            	// 부모 창의 특정 URL로 새로 고침
+                if (window.opener && !window.opener.closed) {
+                   window.opener.location.reload();
+                }
+                window.close();
+            } else {
+                alert("로그인 실패");
+                history.back(); // 로그인 실패 시 이전 페이지로 돌아감
+            }
+        }, 100);
+    }
+</script>

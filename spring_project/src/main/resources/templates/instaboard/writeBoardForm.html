@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insert title here</title>
+<script type="text/javascript">
+   var frm = document.form1;
+   
+   function inputCheck() {
+       if (document.getElementById("fileInput").files.length == 0) {
+           alert("파일을 올려주세요.");
+       } else {
+           document.form1.submit();
+       }
+   }
+
+   // 드래그 앤 드롭 관련 함수들
+   function preventDefaults(e) {
+       e.preventDefault();
+       e.stopPropagation();
+   }
+
+   function highlight(e) {
+       document.getElementById('drop-area').classList.add('highlight');
+   }
+
+   function unhighlight(e) {
+       document.getElementById('drop-area').classList.remove('highlight');
+   }
+
+   function handleDrop(e) {
+       const dt = e.dataTransfer;
+       const files = dt.files;
+
+       document.getElementById('fileInput').files = files;
+       unhighlight(e);
+       showFilesPreview(files);  // 파일 미리보기 업데이트
+   }
+
+   // 파일 미리보기를 위한 함수
+   function showFilesPreview(files) {
+       const previewContainer = document.getElementById('preview-container');
+       previewContainer.innerHTML = '';  // 기존 내용을 지우기
+
+       Array.from(files).forEach((file, index) => {
+           const reader = new FileReader();
+           reader.onload = function(e) {
+               const fileContainer = document.createElement('div');
+               fileContainer.style.display = index === 0 ? 'block' : 'none'; // 첫 번째 이미지만 표시
+               fileContainer.classList.add('slide');
+
+               if (file.type.startsWith('image/')) {
+                   const imgElement = document.createElement('img');
+                   imgElement.src = e.target.result;
+                   imgElement.style.width = '300px';
+                   imgElement.style.height = '400px';
+                   imgElement.style.objectFit = 'cover';
+                   fileContainer.appendChild(imgElement);
+               } else if (file.type.startsWith('video/')) {
+                   const videoElement = document.createElement('video');
+                   videoElement.src = e.target.result;
+                   videoElement.style.width = '300px';
+                   videoElement.style.height = '300px';
+                   videoElement.controls = true;  // 비디오 재생 컨트롤 활성화
+                   fileContainer.appendChild(videoElement);
+               }
+
+               previewContainer.appendChild(fileContainer);
+           }
+           reader.readAsDataURL(file);
+       });
+
+       if (files.length > 1) {
+           createNavigationButtons(files.length);
+       }
+   }
+
+   // 슬라이드 네비게이션 버튼 생성
+   function createNavigationButtons(totalSlides) {
+       const previewContainer = document.getElementById('preview-container');
+
+       // 좌우 화살표 버튼 추가
+       const prevButton = document.createElement('a');
+       prevButton.textContent = '❮';
+       prevButton.className = 'prev';
+       prevButton.onclick = function() {
+           showSlides(-1, totalSlides);
+       };
+
+       const nextButton = document.createElement('a');
+       nextButton.textContent = '❯';
+       nextButton.className = 'next';
+       nextButton.onclick = function() {
+           showSlides(1, totalSlides);
+       };
+
+       previewContainer.appendChild(prevButton);
+       previewContainer.appendChild(nextButton);
+   }
+
+   let slideIndex = 0;
+
+   // 슬라이드 전환 함수
+   function showSlides(n, totalSlides) {
+       const slides = document.getElementsByClassName('slide');
+       slideIndex += n;
+
+       if (slideIndex >= totalSlides) {
+           slideIndex = 0;
+       } else if (slideIndex < 0) {
+           slideIndex = totalSlides - 1;
+       }
+
+       for (let i = 0; i < slides.length; i++) {
+           slides[i].style.display = 'none';
+       }
+
+       slides[slideIndex].style.display = 'block';
+   }
+
+   document.addEventListener('DOMContentLoaded', () => {
+       let dropArea = document.getElementById('drop-area');
+
+       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+           dropArea.addEventListener(eventName, preventDefaults, false);
+       });
+
+       ['dragenter', 'dragover'].forEach(eventName => {
+           dropArea.addEventListener(eventName, highlight, false);
+       });
+
+       ['dragleave', 'drop'].forEach(eventName => {
+           dropArea.addEventListener(eventName, unhighlight, false);
+       });
+
+       dropArea.addEventListener('drop', handleDrop, false);
+
+       // 파일 선택을 통해도 미리보기 업데이트
+       document.getElementById('fileInput').addEventListener('change', function(event) {
+           showFilesPreview(event.target.files);
+       });
+   });
+</script>
+<style>
+#container-form1 {
+   max-width: 1000px; /* 이 페이지의 너비 */
+   margin: 0 auto;
+   padding: 30px;
+   background: #fff;
+   border-radius: 8px;
+   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+   position: relative;
+   min-height: 650px; /* 최소 높이 설정 */
+}
+
+body {
+   overflow: visible !important;
+}
+
+header {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   border-bottom: 1px solid lightgray;
+   padding: 10px;
+   position: relative;
+}
+
+#top-text {
+   font-weight: bold;
+   flex: 1;
+   text-align: center;
+}
+
+#next {
+   position: absolute;
+   right: 20px;
+   top: 50%;
+   transform: translateY(-50%);
+}
+
+main {
+   text-align: center;
+   padding-top: 20px;
+}
+
+label {
+   font-size: 20px;
+}
+
+.btn-upload {
+   cursor: pointer;
+   align-items: center;
+   justify-content: center;
+   margin-top: 0px; /* 상단 여백을 제거하여 버튼을 위로 이동 */
+}
+
+#fileInput {
+   display: none;
+}
+
+.upload-box {
+   border: 2px dashed #ddd;
+   border-radius: 10px;
+   padding: 50px;
+   cursor: pointer;
+}
+
+.upload-box.highlight {
+   border-color: #666;
+}
+
+#nextbtn {
+   display: none;
+}
+
+#preview-container {
+   margin-top: 20px;
+   text-align: center;
+   position: relative;
+   width: 250px; /* 미리보기 컨테이너 크기 고정 */
+   height: 330px;
+   margin: 0 auto; /* 가운데 정렬 */
+   overflow: hidden; /* 슬라이드 넘어가지 않도록 */
+}
+
+.slide {
+   display: none;
+   width: 300px;
+   height: 300px;
+}
+
+.prev, .next {
+   cursor: pointer;
+   position: absolute;
+   top: 50%;
+   width: auto;
+   padding: 16px;
+   margin-top: -22px;
+   color: white;
+   font-weight: bold;
+   font-size: 18px;
+   transition: 0.6s ease;
+   border-radius: 0 3px 3px 0;
+   user-select: none;
+}
+
+.next {
+   right: 0;
+   border-radius: 3px 0 0 3px;
+}
+
+.prev {
+   left: 0;
+   border-radius: 3px 0 0 3px;
+}
+
+</style>
+</head>
+<body>
+   <form id="uploadForm" action="writeBoardForm2" name="form1"
+      method="post" enctype="multipart/form-data">
+      <div id="container-form1">
+         <header>
+            <span id="top-text">새 게시물 만들기</span> <label for="nextbtn" id="next">
+               <img alt="다음" src="instaimage/다음.png"> <input type="button"
+               id="nextbtn" onclick="inputCheck()">
+            </label>
+         </header>
+
+         <main id="content-box">
+            <div class="upload-box" id="drop-area">
+               <img alt="이미지" src="instaimage/사진_동영상1.png"><br> <label
+                  id="textmain">사진과 동영상을 여기에 끌어다 놓으세요</label>
+            </div>
+            <br> <label for="fileInput"> <img class="btn-upload"
+               alt="버튼" src="instaimage/버튼사진.png"> <input type="file"
+               name="files" id="fileInput" multiple="multiple">
+            </label>
+
+            <!-- 미리보기 컨테이너 -->
+            <div id="preview-container"></div>
+         </main>
+      </div>
+
+   </form>
+</body>
+</html>

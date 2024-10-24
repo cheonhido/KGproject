@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Main Layout</title>
+
+<!-- css 파일 -->
+<link rel="stylesheet" href="../CSS/mainForm.css?v=3">
+
+<!-- javascript 파일 -->
+<script type="text/javascript" src="../js/mainFormJS_start.js?v=2"></script>
+</head>
+<body data-page="mainForm">
+	<div class="container">
+		<!-- 왼쪽 탐색 메뉴 -->
+		<div class="left-section">
+			<h3 class="title">
+				<a href="#" id="logoButton"> <img src="img/text_1.png"
+					alt="Instagram main_text" class="title_logo">
+				</a>
+			</h3>
+			<ul>
+				<li><a href="#" id="homeButton"> <img src="img/home.png"
+						alt="Instagram home" class="logo"> <span class="label">홈</span>
+				</a></li>
+				<li><a href="#" data-slide="slide-2"> <img
+						src="img/search.png" alt="Instagram search" class="logo"> <span
+						class="label">검색</span>
+				</a></li>
+				<li><a href="#" data-slide="slide-3"> <img
+						src="img/search_2.png" alt="Instagram search_2" class="logo">
+						<span class="label">탐색 탭</span>
+				</a></li>
+				<!-- 릴스 부분 -->
+				<li><a href="#" data-slide="slide-4" class="middle-slide-view">
+						<img src="img/Reels.png" alt="Instagram Reels" class="logo">
+						<span class="label">릴스</span>
+				</a></li>
+				<li><a href="#" data-slide="slide-5">
+				    <!-- hasUnreadMessages 값에 따라 아이콘을 출력 -->
+				    <img th:src="${hasUnreadMessages ? 'img/unread_msg.png' : 'img/msg.png'}" 
+				         alt="Instagram msg" class="logo">
+				    <span class="label">메시지</span>
+				</a></li>
+				<li><a href="#" data-slide="slide-6"> <img
+						th:if="${follow_list == null or follow_list.isEmpty()}"
+						src="img/alarm5.png" alt="Instagram alarm" class="logo"> <img
+						th:if="${follow_list != null and !follow_list.isEmpty()}"
+						src="img/alarm3.png" alt="Instagram alarm" class="logo"> <span
+						class="label">알림</span>
+				</a></li>
+				<label for="savePostButton">
+					<li><img src="img/make.png" alt="Instagram make" class="logo">
+						<span class="label">만들기</span> <input id="savePostButton"
+						type="button" onclick="uploadFile(600, 800)"></li>
+				</label>
+				<li><a data-slide="slide-8"> <img
+						th:src="@{storage/} + ${mydb.PFimage}" alt="Instagram Logo"
+						class="logo_profile"> <span class="label">프로필</span>
+				</a></li>
+			</ul>
+			<li class="more-item"><a href="#" data-slide="slide-more"> <img
+					src="img/list.png" alt="Instagram list" class="logo"> <span
+					class="label">더 보기</span></a></li>
+
+
+			<!-- 슬라이드 아웃 패널 -->
+			<!-- 검색 -->
+			<div class="slide-out" id="slide-2">
+				<!-- 검색 기능 타이틀 -->
+				<div class="search_title">
+					<h4>검색</h4>
+				</div>
+
+				<!-- 검색 입력란 -->
+				<div class="search-container">
+					<input type="text" placeholder="검색" id="search_textField">
+					<button id="clear_search">✖</button>
+				</div>
+
+				<hr>
+				<!-- 검색결과 출력 -->
+				<div id="print_search_result"></div>
+			</div>
+
+			<!--탐색 탭-->
+			<div id="slide-3">
+				<form id="profileForm">
+					<input type="hidden" id="toUser" name="from_user"
+						th:value="${from_user}">
+				</form>
+			</div>
+
+			<!--DM-->
+			<div class="slide-out" id="slide-5">
+				<!-- 패널 상단의 사용자 프로필 헤더 -->
+				<div class="dmpanel-header">
+					<!-- 현재 사용자 프로필 이미지 -->
+					<img class="dmheader-profile-img"
+						th:src="@{/storage/} + ${mydb.PFimage}" alt="Profile Picture">
+					<!-- 현재 사용자 아이디 -->
+					<span class="dmheader-username" th:text="${mydb.userid}"></span>
+				</div>
+
+				<!-- 메시지 텍스트 추가 -->
+				<div class="dmmessage-title">메시지</div>
+				<!-- DM 리스트 -->
+				<ul class="dm-list">
+					<!-- followM_list를 순회하면서 각 사용자의 정보를 가져옴 -->
+					<th:block th:each="user : ${followM_list}">
+						<!-- followM_message_map이 null이 아닌지 확인 -->
+						<th:block th:if="${followM_message_map != null}">
+							<!-- 해당 사용자의 메시지가 있는지 확인 (Key로 메시지 존재 여부 확인) -->
+							<th:block
+								th:if="${followM_message_map.containsKey(user.userid) && followM_message_map.get(user.userid) != null && !followM_message_map.get(user.userid).isEmpty()}">
+								<li class="dm-item" th:data-userid="${user.userid}">
+									<!-- 사용자의 프로필 이미지 출력 --> <img class="profile-img"
+									th:src="@{/storage/} + ${user.PFimage}" alt="Profile Picture">
+									<!-- 사용자 ID 출력 -->
+									<div class="user-info">
+										<span class="username" th:text="${user.userid}"></span>
+										<!-- 메시지 리스트를 가져옴 -->
+										<th:block
+											th:with="messages=${followM_message_map.get(user.userid)}">
+											<!-- 메시지가 비어 있지 않은지 확인 -->
+											<th:block th:if="${messages != null && !messages.isEmpty()}">
+												<th:block
+													th:with="lastMessage=${messages.get(messages.size() - 1)}">
+													<!-- 메시지가 null이 아닌지 확인 -->
+													<th:block th:if="${lastMessage.message != null}">
+														<!-- 메시지가 이미지나 동영상인지 확인 -->
+														<th:block
+															th:if="${lastMessage.message.toLowerCase().endsWith('.jpg') || 
+                                            lastMessage.message.toLowerCase().endsWith('.png') || 
+                                            lastMessage.message.toLowerCase().endsWith('.mp4') || 
+                                            lastMessage.message.toLowerCase().endsWith('.avi')}">
+															<span class="message-preview">첨부 파일을 보냈습니다</span>
+														</th:block>
+														<!-- 일반 텍스트 메시지라면 내용 출력 (readcheck와 senduser에 따라 색상 변경) -->
+														<th:block
+															th:unless="${lastMessage.message.toLowerCase().endsWith('.jpg') || 
+                                            lastMessage.message.toLowerCase().endsWith('.png') || 
+                                            lastMessage.message.toLowerCase().endsWith('.mp4') || 
+                                            lastMessage.message.toLowerCase().endsWith('.avi')}">
+															<span class="message-preview"
+																th:text="${lastMessage.message}"
+																th:style="${(lastMessage.readcheck == 1) || (lastMessage.readcheck == 0 && lastMessage.senduser == from_user) ? 'color:gray;' : 'color:black;'}"></span>
+
+															<!-- 읽지 않은 메시지에만 dot.png 추가 -->
+															<th:block
+																th:if="${lastMessage.readcheck == 0 && lastMessage.senduser != from_user}">
+																<img class="dmdot-icon" src="../img/dot.png"
+																	alt="New Message Indicator">
+															</th:block>
+														</th:block>
+													</th:block>
+												</th:block>
+											</th:block>
+										</th:block>
+									</div>
+								</li>
+							</th:block>
+						</th:block>
+					</th:block>
+				</ul>
+			</div>
+
+
+			<!--알림-->
+			<div class="slide-out" id="slide-6">
+				<h3>알림</h3>
+				<br>
+				<table>
+					<tr th:each="dto : ${follow_list}">
+						<td>[[${dto.from_user}]] 님이 회원님을 팔로우하기 시작했습니다.</td>
+						<td>
+							<form action="/followResponse" method="post" name="form1">
+								<input type="hidden" th:value="${dto.from_user}"
+									name="from_user" id="fromUser"> <input type="button"
+									class="followBtn_2" value="팔로우">
+							</form>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<!--프로필-->
+			<div id="slide-8">
+				<form id="profileForm">
+					<input type="hidden" id="toUser" name="from_user"
+						th:value="${from_user}">
+				</form>
+			</div>
+			<!-- 로그아웃 패널 -->
+			<div class="logout-panel" id="logout-panel">
+				<a href="#" onclick="location.href='/logout'">로그아웃</a>
+			</div>
+		</div>
+
+		<!-- 중앙 피드 -->
+		<div class="feed-section">
+			<div class="mainbanner">
+				<img alt="상단배너" src="img/mainupper111.png">
+			</div>
+			<br>
+			<th:block th:if="${insta_list != null and !insta_list.isEmpty()}">
+				<form action="/mainForm" name="seq_submit">
+					<input type="hidden" name="seq" id="seq"
+						th:value="${insta_list[0].seq}">
+				</form>
+			</th:block>
+			<th:block th:each="dto, stat : ${insta_list}">
+				<div class="post-container"
+					th:id="'post-container-' + ${stat.index}"
+					th:data-post-id="${dto.seq}">
+					<!-- 프로필 및 시간 -->
+					<div class="profile-section">
+						<img th:src="@{|/storage/${pfimage_list[stat.index]}|}"
+							alt="Profile Picture" class="profile-pic">
+						<div class="profile-info">
+							<h2 class="username">[[${dto.userid}]]</h2>
+							<span class="post-time">[[${dto.board_date}]]</span>
+						</div>
+						<div class="profile-menuR">
+							<th:block th:if="${from_user != dto.userid}">
+								<label for="list1button"> <img alt="우측상단메뉴"
+									src="instaimage/게시글우측.png"> <input type="button"
+									class="list1button" id="list1button">
+								</label>
+							</th:block>
+							<th:block th:if="${from_user == dto.userid}">
+								<label th:for="'list2button-' + ${dto.seq}"> <img
+									alt="우측상단메뉴" src="instaimage/게시글우측.png"> <input
+									type="button" class="list2button"
+									th:id="'list2button-' + ${dto.seq}"
+									th:data-post-seq="${dto.seq}"
+									th:data-board-content="${dto.board_content}"
+									th:data-board-file="${dto.board_file}">
+								</label>
+							</th:block>
+						</div>
+					</div>
+					<!-- 다른사람 게시물에서 더보기 눌렀을 때 -->
+					<div class="list1overlay" id="list1overlay"></div>
+					<div class="list1post">
+						<button class="list1button" id="list1button">...</button>
+						<div class="plus1menu" id="plus1menu" align="center">
+							<div style="color: red">신고</div>
+							<div style="color: red">팔로우 취소</div>
+							<div>즐겨찾기에 추가</div>
+							<div>게시물로 이동</div>
+							<div>공유 대상...</div>
+							<div>링크 복사</div>
+							<div>퍼가기</div>
+							<div>이 계정 정보</div>
+							<div>취소</div>
+						</div>
+					</div>
+					<!-- 개인 게시물에서 더보기 눌렀을 때 -->
+					<div class="list2overlay" th:id="'list2overlay-' + ${dto.seq}"></div>
+					<div class="list2post">
+						<div class="plus2menu" th:id="'plus2menu-' + ${dto.seq}"
+							align="center">
+							<div style="color: red">삭제</div>
+							<div>수정</div>
+							<div>다른 사람에게 좋아요 수 숨기기</div>
+							<div>댓글 기능 해제</div>
+							<div>게시물로 이동</div>
+							<div>공유 대상...</div>
+							<div>링크 복사</div>
+							<div>퍼가기</div>
+							<div>취소</div>
+						</div>
+					</div>
+					<!-- 이미지/동영상 캐러셀 -->
+					<div class="carousel-container"
+						th:id="'carousel-container-' + ${stat.index}">
+						<span class="carousel-arrow left-arrow"
+							th:id="'left-arrow-' + ${stat.index}"
+							th:onclick="'prevSlide(' + ${stat.index} + ')'">&#10094;</span>
+
+						<div class="carousel-slides"
+							th:id="'carousel-slides-' + ${stat.index}">
+							<th:block
+								th:each="fileName : ${#strings.arraySplit(dto.board_file, ',')}">
+								<div class="carousel-slide">
+									<img
+										th:if="${#strings.endsWith(fileName.toLowerCase(), '.jpg') or 
+		                                        #strings.endsWith(fileName.toLowerCase(), '.jpeg') or 
+		                                        #strings.endsWith(fileName.toLowerCase(), '.png') or 
+		                                        #strings.endsWith(fileName.toLowerCase(), '.gif') or
+		                                        #strings.endsWith(fileName.toLowerCase(), '.jfif')}"
+										th:src="@{storage/} + ${fileName.trim()}" alt="Post Image"
+										class="post-media">
+									<video
+										th:if="${#strings.endsWith(fileName.toLowerCase(), '.mp4') or 
+		                                              #strings.endsWith(fileName.toLowerCase(), '.webm') or 
+		                                              #strings.endsWith(fileName.toLowerCase(), '.ogg')}"
+										th:src="@{storage/} + ${fileName.trim()}" width="640"
+										height="360" class="post-media" autoplay muted loop controls>
+									</video>
+								</div>
+							</th:block>
+						</div>
+
+						<span class="carousel-arrow right-arrow"
+							th:onclick="'nextSlide(' + ${stat.index} + ')'">&#10095;</span>
+					</div>
+
+					<!-- 버튼 섹션 -->
+					<div class="button-section">
+						<button th:id="'heart1Button-' + ${dto.seq}" class="heart-button"
+							th:data-post-seq="${dto.seq}"
+							th:data-is-liked="${dto.is_liked == 1 ? 'true' : 'false'}">
+							<img th:id="'heart1Image-' + ${dto.seq}"
+								th:src="${dto.is_liked == 1 ? 'img/heart2.png' : 'img/heart1.png'}"
+								alt="Instagram heart" class="logo">
+						</button>
+						<a href="#" class="openViewButton" th:data-seq="${dto.seq}"
+							th:data-userid="${dto.userid}"
+							th:data-filename="${dto.board_file}"
+							th:data-content="${dto.board_content}"
+							th:data-comments="${#strings.listJoin(dto.comments, ', ')}">
+							<img src="instaimage/comment.png" alt="Instagram comment"
+							class="logo">
+						</a>
+						<!-- 공유버튼 -->
+						<a href="#"> <img src="instaimage/msg.png" alt="Instagram msg"
+							class="logo" id="msgButton" onclick="openPopup()">
+						</a>
+
+						<!-- 팝업창 외의 배경을 어둡게 만드는 div 추가 -->
+						<div class="popup-background" id="popupBackground"></div>
+
+						<!-- 공유버튼 클릭시 팝업 -->
+						<div id="post_popup" class="popup-window">
+							<div
+								style="position: relative; border-bottom: 1px solid #dbdbdb;">
+								<!-- 닫기 버튼 -->
+								<span id="post_popup_close" onclick="closePopup()">&times;</span>
+								<h3
+									style="text-align: center; margin-top: 5px; font-size: 25px;">공유</h3>
+							</div>
+
+							<!-- 검색 : 전체유저 -->
+							<div style="padding: 10px; border-bottom: 1px solid #dbdbdb;">
+								<label for="search_all_user"
+									style="font-size: 15px; font-weight: bold;">받는 사람</label>
+								<div id="selected_users"></div>
+								<input type="text" id="search_all_user" style="font-size: 15px;"
+									placeholder="검색...">
+							</div>
+
+							<!-- 추천 : 맞팔유저 -->
+							<div id="recommend_follower">
+								<h4 id="list_title" style="font-size: 15px; color: #8e8e8e;">추천</h4>
+								<ul id="print_followerList">
+									<!-- followM_list_random 리스트를 순회하여 각 팔로워 출력 -->
+									<li th:each="followerM : ${followM_list_random}"
+										style="display: flex; align-items: center; margin-bottom: 10px;">
+										<!-- 프로필 이미지 --> <img
+										th:src="@{/storage/} + ${followerM.PFimage}"
+										alt="[[${followerM.PFimage}]]"
+										style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px;">
+										<!-- 이름과 유저명 -->
+										<div>
+											<strong th:text="${followerM.username}"></strong><br> <small
+												th:text="${followerM.userid}"></small>
+										</div> <!-- 체크박스 버튼 --> <input type="checkbox"
+										th:value="${followerM.userid}" th:name="${followerM.userid}"
+										class="post_share_checkbox" style="margin-left: auto;">
+									</li>
+								</ul>
+							</div>
+
+							<!-- 메시지 입력창 추가 -->
+							<div id="share_message_box">
+								<textarea id="message_textarea" placeholder="메시지 쓰기..."></textarea>
+							</div>
+
+							<!-- 보내기버튼 -->
+							<div id="share_submit_button">
+								<button id="share_submit_button_ok"
+									onclick="sendSelectedFollowers()" disabled>보내기</button>
+							</div>
+
+							<!-- 히든으로 데이터 보내기 -->
+							<input type="hidden" id="share_post_seq" th:value="${dto.seq}" />
+							<input type="hidden" id="all_user_list_hidden"
+								th:value="${all_user_list}" /> <input type="hidden"
+								id="followMListRandom_hidden"
+								th:value="${followM_list_random_json}" />
+						</div>
+
+						<a href="#" th:id="'save1Button-' + ${dto.seq}"
+							class="save-button" style="margin-left: auto;"
+							th:data-post-seq="${dto.seq}"
+							th:data-is-saved="${dto.is_saved == 1 ? 'true' : 'false'}"> <img
+							th:src="${dto.is_saved == 1 ? 'img/save5.png' : 'img/save.png'}"
+							alt="Instagram save" class="logo"
+							th:id="'saveImage-' + ${dto.seq}">
+						</a>
+					</div>
+
+					<!-- 좋아요 수 -->
+					<div class="likes-section" th:id="'likesSection-' + ${stat.index}">
+						좋아요 <span th:id="'likesCount-' + ${dto.seq}">[[${dto.like_count}]]</span>개
+					</div>
+
+					<!-- 사용자 아이디 및 해시태그 -->
+					<div class="caption-section">
+						<p class="caption">
+							<strong>[[${dto.userid}]]</strong> <span
+								th:utext="${dto.board_content}"></span>
+						</p>
+					</div>
+
+					<!-- 댓글 섹션 -->
+					<div class="comments-section"
+						th:id="'commentsSection-' + ${dto.seq} + '-' + ${stat.index}">
+
+						<div class="comment" th:each="comment, iterStat : ${dto.comments}"
+							th:if="${iterStat.index < 2}"
+							th:data-comment-id="${comment.userid}"
+							th:data-post-seq="${dto.seq}" th:data-get-id="${comment.id}">
+
+							<strong th:text="${comment.userid}"></strong> <span
+								th:text="${comment.content}"></span>
+
+							<th:block th:if="${from_user == comment.userid}">
+								<label th:for="'list3button-' + ${comment.id}"> <img
+									alt="댓글메뉴" src="instaimage/게시글우측.png"> <input
+									type="button" class="list3button"
+									th:id="'list3button-' + ${comment.id}">
+								</label>
+							</th:block>
+
+							<th:block th:if="${from_user != comment.userid}">
+								<label th:for="'list4button-' + ${comment.id}"> <img
+									alt="댓글메뉴" src="instaimage/게시글우측.png"> <input
+									type="button" class="list4button"
+									th:id="'list4button-' + ${comment.id}">
+								</label>
+							</th:block>
+
+							<!-- 댓글에서 메뉴 눌렀을 때 자신의 아이디일 경우 -->
+							<div class="list3overlay" th:id="'list3overlay-' + ${comment.id}"></div>
+							<div class="list3post">
+								<div class="plus3menu" th:id="'plus3menu-' + ${comment.id}"
+									align="center">
+									<div style="color: red">삭제</div>
+									<div>취소</div>
+								</div>
+							</div>
+
+							<!-- 댓글에서 메뉴 눌렀을 때 다른 사람 아이디일 경우 -->
+							<div class="list4overlay" th:id="'list4overlay-' + ${comment.id}"></div>
+							<div class="list4post">
+								<div class="plus4menu" th:id="'plus4menu-' + ${comment.id}"
+									align="center">
+									<div style="color: red">신고</div>
+									<div>취소</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- 나머지 댓글은 숨김 처리 -->
+						<div class="comment hidden"
+							th:each="comment, iterStat : ${dto.comments}"
+							th:if="${iterStat.index >= 2}"
+							th:data-comment-id="${comment.userid}"
+							th:data-post-seq="${dto.seq}" th:data-get-id="${comment.id}">
+
+							<strong th:text="${comment.userid}"></strong> <span
+								th:text="${comment.content}"></span>
+
+							<th:block th:if="${from_user == comment.userid}">
+								<label th:for="'list3button-' + ${comment.id}"> <img
+									alt="댓글메뉴" src="instaimage/게시글우측.png"> <input
+									type="button" class="list3button"
+									th:id="'list3button-' + ${comment.id}">
+								</label>
+							</th:block>
+
+							<th:block th:if="${from_user != comment.userid}">
+								<label th:for="'list4button-' + ${comment.id}"> <img
+									alt="댓글메뉴" src="instaimage/게시글우측.png"> <input
+									type="button" class="list4button"
+									th:id="'list4button-' + ${comment.id}">
+								</label>
+							</th:block>
+
+							<!-- 댓글에서 메뉴 눌렀을 때 자신의 아이디일 경우 -->
+							<div class="list3overlay" th:id="'list3overlay-' + ${comment.id}"></div>
+							<div class="list3post">
+								<div class="plus3menu" th:id="'plus3menu-' + ${comment.id}"
+									align="center">
+									<div style="color: red">삭제</div>
+									<div>취소</div>
+								</div>
+							</div>
+
+							<!-- 댓글에서 메뉴 눌렀을 때 다른 사람 아이디일 경우 -->
+							<div class="list4overlay" th:id="'list4overlay-' + ${comment.id}"></div>
+							<div class="list4post">
+								<div class="plus4menu" th:id="'plus4menu-' + ${comment.id}"
+									align="center">
+									<div style="color: red">신고</div>
+									<div>취소</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- 댓글이 2개 이상일 때만 "댓글 모두보기" 버튼 표시 -->
+						<button th:if="${dto.comments.size() > 2}"
+							th:id="show-more-comments- + ${dto.seq}"
+							th:data-stat-index="${stat.index}" th:data-post-seq="${dto.seq}"
+							class="show-more-comments">댓글 모두보기</button>
+					</div>
+
+					<!-- 댓글 달기 -->
+					<form action="/insertComment" method="post">
+						<div class="add-comment-section"
+							th:id="'addCommentSection-' + ${stat.index}">
+							<input type="hidden" name="post_seq" id="post_seq"
+								th:value="${dto.seq}">
+							<th:block th:each="comments : ${dto.comments}">
+								<input type="hidden" name="commentId" id="commentId"
+									th:value="${comments.userid}">
+							</th:block>
+							<input type="text" name="content" placeholder="댓글 달기..."
+								class="comment-input">
+							<div class="emoji-picker-wrapper">
+								<img src="instaimage/imo.png" alt="imo" class="emoji-toggle"
+									th:id="'emojiToggle-' + ${stat.index}"
+									th:onclick="toggleEmojiPicker(${stat.index})">
+								<div th:id="'emojiPicker-' + ${stat.index}" class="emoji-picker">
+									<img
+										src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f600.png"
+										alt="😀" th:onclick="insertEmoji('😀', ${stat.index})">
+									<img
+										src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f602.png"
+										alt="😂" th:onclick="insertEmoji('😂', ${stat.index})">
+									<img
+										src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/2764.png"
+										alt="❤️" th:onclick="insertEmoji('❤️', ${stat.index})">
+									<img
+										src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f525.png"
+										alt="🔥" th:onclick="insertEmoji('🔥', ${stat.index})">
+									<img
+										src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f44d.png"
+										alt="👍" th:onclick="insertEmoji('👍', ${stat.index})">
+								</div>
+							</div>
+							<button class="submit-comment"
+								th:id="'submitComment-' + ${stat.index}"
+								style="font-weight: bold; background-color: transparent; color: #007bff; border: 2px solid transparent;">게시</button>
+						</div>
+					</form>
+				</div>
+			</th:block>
+		</div>
+
+		<!-- 오른쪽 섹션 (친구 추천 등) -->
+		<div class="right-section">
+			<form name="myForm" id="myForm">
+				<input type="hidden" name="to_user" id="hidden_to_user">
+				<table>
+					<tr>
+						<td><a th:href="@{/MyPage(pageid=${mydb.userid})}"
+							th:if="${mydb.PFimage == 'basic_profile.png'}" name="pageid">
+								<img th:src="@{storage/} + ${mydb.PFimage}"
+								alt="Profile Picture" class="profile-pic">
+						</a> <a th:href="@{/MyPage(pageid=${mydb.userid})}" name="pageid"
+							th:if="${mydb.PFimage != 'basic_profile.png'}"> <img
+								th:src="@{storage/} + ${mydb.PFimage}" alt="Profile Picture"
+								class="profile-pic">
+						</a></td>
+						<td th:data-userid="${mydb.userid}"
+							style="width: 200px; padding-left: 10px; font-size: 23px;">
+							<a th:href="@{/MyPage(pageid=${mydb.userid})}" name="pageid"
+							style="text-decoration: none;">[[${mydb.userid}]]</a>
+							<p
+								th:if="${mydb.introduce != null and !#strings.isEmpty(mydb.introduce)}"
+								class="reco"font-size: 17px;>[[${mydb.introduce}]]</p>
+						</td>
+						<td><input type="button" id="loginChangeBtn"
+							class="loginChangeBtn"
+							style="font-weight: bold; background-color: transparent; color: #007bff; border: 2px solid transparent;"
+							value="전환" onclick="openLoginChangeModal()"></td>
+					</tr>
+				</table>
+			</form>
+			<br> <br>
+
+			<table>
+				<tr style="height: 40px;">
+					<td
+						style="width: 190px; color: gray; font-size: 16px; font-weight: bold;">회원님을
+						위한 추천</td>
+					<td style="padding-right: 15px; padding-left: 15px;"><a
+						name="ptall" th:href="@{/People(userid=${mydb.userid})}">모두보기</a></td>
+				</tr>
+			</table>
+
+			<form name="form1" id="form1">
+				<input type="hidden" name="to_user" id="hidden_to_user">
+				<table>
+					<tr th:each="dto : ${recomend_list}">
+						<td><a th:href="@{/MyPage(pageid=${dto.userid})}"
+							name="pageid"> <img th:src="@{storage/} + ${dto.PFimage}"
+								alt="Profile Picture" class="profile-pic">
+						</a></td>
+						<td th:data-userid="${dto.userid}"
+							style="width: 150px; padding-left: 20px; font-size: 13px;">
+							<a th:href="@{/MyPage(pageid=${dto.userid})}"
+							style="text-decoration: none;" name="pageid">[[${dto.userid}]]</a>
+							<p class="reco">회원님을 위한 추천</p>
+						</td>
+						<td><input type="button" id="followBtn_1" class="followBtn_1"
+							style="font-weight: bold; background-color: transparent; color: #007bff; border: 2px solid transparent;"
+							value="팔로우"></td>
+					</tr>
+				</table>
+			</form>
+		</div>
+	</div>
+
+	<!-- 만들기 -->
+	<div id="modalBackground" class="modal-background"></div>
+
+	<!-- 계정전환 모달 -->
+	<div id="loginChangeModal" class="loginChangeModal">
+		<div class="loginChangeModal-content">
+			<span class="loginChangeModalclose-btn">&times;</span>
+			<div class="loginChangeModal-title">계정 전환</div>
+
+			<!-- 중심 내용 -->
+			<div class="loginChangeModal-container">
+				<div class="icon">
+					<img th:src="@{storage/} + ${mydb.PFimage}" alt="Icon">
+				</div>
+				<div class="text" th:text="${mydb.userid}"></div>
+				<div class="AccountCheckIcon">
+					<img src="/img/icons8-check-30.png" alt="CheckIcon">
+				</div>
+			</div>
+			<div th:each="account : ${Accounts}"
+				class="loginChangeModal-container">
+				<div class="icon">
+					<a th:href="@{/AccountChange(accountId=${account.userid})}"> <img
+						th:src="@{storage/} + ${account.PFimage}" alt="Icon">
+					</a>
+				</div>
+				<div class="text" th:text="${account.userid}"></div>
+			</div>
+
+			<!-- 모달 하단 버튼 -->
+			<button class="loginChangeModal-button"
+				onclick="addAndSwitchAccount()">계정 추가</button>
+		</div>
+	</div>
+
+	<!-- 검색기능 script -->
+	<!-- Spring에서 받은 데이터를 JavaScript로 전달 -->
+	<script type="text/javascript" th:inline="javascript">
+		// Spring에서 넘겨준 데이터를 JavaScript 변수로 변환
+		var allUserList = /*[[${all_user_list}]]*/'[]';
+		var instaListAll = /*[[${insta_list_all}]]*/'[]';
+		var loginedId = /*[[${from_user}]]*/'';
+
+		// 계정전환 관련 이벤트
+		// 모달 열기 함수
+		function openLoginChangeModal() {
+			var loginChangeModal = document.getElementById("loginChangeModal");
+			loginChangeModal.style.display = "block";
+		}
+
+		// 모달 요소 가져오기
+		var loginChangeModal = document.getElementById("loginChangeModal");
+		var loginChangeBtn = document.getElementById("loginChangeBtn");
+		var loginChangeModalclose_btn = document
+				.getElementsByClassName("loginChangeModalclose-btn")[0];
+		var outsideClickCount = 0;
+
+		loginChangeModal.style.display = "none";
+
+		// X 버튼 클릭 시 모달 닫기
+		loginChangeModalclose_btn.onclick = function() {
+			loginChangeModal.style.display = "none";
+		}
+
+		// 모달 바깥을 두 번 클릭해야 모달 닫기
+		window.onclick = function(event) {
+			if (event.target == loginChangeModal) {
+				outsideClickCount++;
+				if (outsideClickCount >= 2) {
+					loginChangeModal.style.display = "none";
+					outsideClickCount = 0; // 클릭 카운터 초기화
+				}
+			}
+		}
+
+		// 버튼 클릭 시 모달 열기
+		loginChangeBtn.onclick = function() {
+			openLoginChangeModal();
+		}
+
+		function addAndSwitchAccount() {
+			var width = 500;
+			var height = 500;
+			var windowWidth = window.innerWidth;
+			var windowHeight = window.innerHeight;
+			var windowLeft = window.screenX || window.screenLeft;
+			var windowTop = window.screenY || window.screenTop;
+
+			var left = windowLeft + (windowWidth - width) / 2;
+			var top = windowTop + (windowHeight - height) / 2;
+
+			var features = `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`;
+			window.open("/addAccountLoginForm", "", features);
+		}
+	</script>
+
+
+	<!-- javascript 파일 -->
+	<script type="text/javascript" src="../js/mainFormJS_end.js?v=2"></script>
+</body>
+</html>

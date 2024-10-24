@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>새 게시물 만들기</title>
+<script type="text/javascript">
+	function inputCheck() {
+		var frm = document.form1;
+		
+		frm.submit();
+		
+		
+	}
+   function previewImage(event) {
+      const input = event.target;
+      const file = input.files[0];
+      const preview = document.getElementById('imagePreview');
+      const fileInputWrapper = document.getElementById('fileInputWrapper');
+
+      if (file) {
+         const reader = new FileReader();
+         reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block'; // Show the image
+         }
+         reader.readAsDataURL(file);
+
+         // Hide the file input after selecting a file
+         fileInputWrapper.style.display = 'none';
+      } else {
+         preview.src = '';
+         preview.style.display = 'none';
+         fileInputWrapper.style.display = 'block'; // Show the file input if no file is selected
+      }
+   }
+
+   function insertEmoji(emoji) {
+      const textarea = document.getElementById('board_content');
+      const cursorPos = textarea.selectionStart;
+      const textBefore = textarea.value.substring(0, cursorPos);
+      const textAfter = textarea.value.substring(cursorPos,
+            textarea.value.length);
+      textarea.value = textBefore + emoji + textAfter;
+      textarea.selectionStart = textarea.selectionEnd = cursorPos
+            + emoji.length;
+      textarea.focus();
+      updateCharacterCount(); // Update character count after inserting emoji
+   }
+
+   function toggleEmojiPicker() {
+      const emojiPicker = document.getElementById('emojiPicker');
+      emojiPicker.style.display = (emojiPicker.style.display === 'block') ? 'none'
+            : 'block';
+   }
+
+   function updateCharacterCount() {
+      const textarea = document.getElementById('board_content');
+      const charCount = textarea.value.length;
+      const charCountDisplay = document.getElementById('charCount');
+      charCountDisplay.textContent = `${charCount} / 2000`;
+   }
+   // 이미지 전환 버튼 함수
+   window.onload = function() {
+      // 이미지 전환 버튼 함수
+      let currentImageIndex = 0;
+      const images = document.querySelectorAll("#fileInputWrapper img");
+
+      function showImage(index) {
+         images.forEach((img, i) => {
+            img.style.display = i === index ? "block" : "none";
+         });
+      }
+
+      function showNextImage() {
+         currentImageIndex = (currentImageIndex + 1) % images.length;
+         showImage(currentImageIndex);
+      }
+
+      function showPrevImage() {
+         currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+         showImage(currentImageIndex);
+      }
+
+      // 초기 화면 설정
+      if (images.length > 0) {
+         showImage(currentImageIndex);
+      }
+
+      // 이벤트 리스너 추가
+      document.getElementById('nextBtn').addEventListener('click', showNextImage);
+      document.getElementById('prevBtn').addEventListener('click', showPrevImage);
+   };
+
+   // 초기 화면 설정
+   showImage(currentImageIndex);
+   
+   
+</script>
+<style type="text/css">
+body {
+   font-family: Arial, sans-serif;
+   margin: 0;
+   padding: 70px 0 0;
+   background-color: #fafafa;
+}
+
+.container {
+   max-width: 900px;
+   margin: 0 auto;
+   padding: 20px;
+   background: #fff;
+   border-radius: 8px;
+   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+   position: relative;
+}
+
+.header {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   border-bottom: 1px solid #ddd;
+   padding-bottom: 10px;
+   margin-bottom: 20px;
+}
+
+.header h1 {
+   margin: 0;
+   font-size: 24px;
+   color: #333;
+   flex: 1;
+   text-align: center;
+}
+
+.header .share-button {
+   background-color: #3897f0;
+   color: #fff;
+   border: none;
+   padding: 10px 20px;
+   border-radius: 4px;
+   cursor: pointer;
+   font-size: 16px;
+   font-weight: bold;
+   text-transform: uppercase;
+}
+
+.header .share-button:hover {
+   background-color: #2a6db6;
+}
+
+.main-content {
+   display: flex;
+   gap: 20px;
+}
+
+.left-column {
+   flex: 1;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   border: 1px solid #ddd;
+   border-radius: 8px;
+   padding: 10px;
+   background-color: #fff;
+   position: relative;
+}
+
+.left-column img,
+.left-column video {
+   max-width: 100%;
+   max-height: 400px;
+   object-fit: cover;
+   display: none; /* Initially hide */
+   cursor: pointer;
+}
+
+.right-column {
+   flex: 1;
+   display: flex;
+   flex-direction: column;
+   gap: 20px;
+}
+
+.form-group {
+   margin-bottom: 20px;
+}
+
+.form-group label {
+   display: block;
+   margin-bottom: 8px;
+   font-weight: bold;
+   color: #333;
+}
+
+.form-group textarea, .form-group input[type="text"], .form-group button {
+   width: 100%;
+   padding: 10px;
+   border: 1px solid #ddd;
+   border-radius: 4px;
+   background-color: #fafafa;
+}
+
+.form-group textarea {
+   resize: vertical;
+   height: 350px;
+}
+
+.form-group button {
+   background-color: #3897f0;
+   color: #fff;
+   border: none;
+   cursor: pointer;
+   font-size: 16px;
+}
+
+.form-group button:hover {
+   background-color: #2a6db6;
+}
+
+.location-input {
+   display: flex;
+   align-items: center;
+}
+
+.location-input input {
+   margin-left: 10px;
+   flex: 1;
+}
+
+.emoji-picker {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    z-index: 10;
+    width: max-content;
+    max-width: 300px;
+    max-height: 150px;
+    overflow-y: auto;
+    transform: translateY(10px);
+}
+
+.emoji-picker::before {
+   content: '';
+   position: absolute;
+   top: -10px;
+   left: 20px;
+   width: 0;
+   height: 0;
+   border-left: 10px solid transparent;
+   border-right: 10px solid transparent;
+   border-bottom: 10px solid #fff;
+   z-index: 11;
+}
+
+.emoji-picker img {
+   width: 30px;
+   height: 30px;
+   cursor: pointer;
+   margin: 5px;
+   transition: background-color 0.3s;
+}
+
+.emoji-picker img:hover {
+   background-color: #eee;
+   border-radius: 4px;
+}
+
+.bottom-controls {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   margin-top: 10px;
+   position: relative;
+}
+
+.char-count {
+   font-size: 14px;
+   color: #333;
+}
+
+.emoji-picker-wrapper {
+   display: flex;
+   align-items: center;
+   gap: 10px;
+   position: relative;
+}
+
+.emoji-toggle {
+   width: 25px;
+   height: 25px;
+}
+
+.arrow {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 2em;
+	color: gray;
+	cursor: pointer;
+	padding: 10px;
+	background: rgba(255, 255, 255, 0.5);
+	border-radius: 50%;
+}
+
+.arrow:hover {
+	background: rgba(255, 255, 255, 0.8);
+}
+
+#prevBtn {
+	left: 0;
+}
+
+#nextBtn {
+	right: 0;
+}
+
+#backbtn, #sendbtn, #hiddenfile {
+	display: none;
+}
+
+</style>
+</head>
+<body>
+<form action="writeBoard" name="form1">
+   <div class="container">
+      <div class="header">
+         <h1>새 게시물 만들기</h1>
+         <button class="share-button" onclick="inputCheck()">공유하기</button>
+      </div>
+      <div class="main-content">
+         <div class="left-column">
+            <div id="fileInputWrapper">
+               <th:block th:each="fileName, stat : ${list_str}">
+    				<!-- 이미지 파일 조건 -->
+			        <img th:if="${#strings.endsWith(fileName.toLowerCase(), '.jpg') or 
+			                      #strings.endsWith(fileName.toLowerCase(), '.jpeg') or 
+			                      #strings.endsWith(fileName.toLowerCase(), '.png') or 
+			                      #strings.endsWith(fileName.toLowerCase(), '.gif') or
+			                      #strings.endsWith(fileName.toLowerCase(), '.jfif')}"
+			             th:alt="'업로드이미지' + ${stat.index + 1}"
+			             th:src="@{storage/} + ${fileName}"
+			             th:style="${stat.count == 1} ? 'display: block;' : 'display: none;'"/>
+			        
+			        <!-- 동영상 파일 조건 -->
+			        <video th:if="${#strings.endsWith(fileName.toLowerCase(), '.mp4') or 
+			                       #strings.endsWith(fileName.toLowerCase(), '.webm') or 
+			                       #strings.endsWith(fileName.toLowerCase(), '.ogg')}"
+			               th:src="@{storage/} + ${fileName}"
+			               th:alt="'업로드동영상' + ${stat.index + 1}"
+			               th:style="${stat.count == 1} ? 'display: block;' : 'display: none;'"
+			               width="640" height="360"
+			               controls>
+			        </video>
+
+    				<input type="hidden" name="img" th:value="${fileName}">
+    				<input type="hidden" name="seq" th:value="${instaboard.seq}">
+				</th:block>
+		
+				<span id="prevBtn" class="arrow" onclick="showPrevImage()">&#10094;</span>
+				<span id="nextBtn" class="arrow" onclick="showNextImage()">&#10095;</span>
+            </div>
+         </div>
+         <div class="right-column">
+            <div class="form-group">
+               <label for="board_content"></label>
+               <textarea id="board_content" name="board_content" oninput="updateCharacterCount()"></textarea>
+               <div class="bottom-controls">
+                  <div class="emoji-picker-wrapper">
+                     <img src="instaimage/imo.png" alt="imo" class="emoji-toggle" onclick="toggleEmojiPicker()">
+                     <div id="emojiPicker" class="emoji-picker">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f600.png" alt="😀" onclick="insertEmoji('😀')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f602.png" alt="😂" onclick="insertEmoji('😂')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/2764.png" alt="❤️" onclick="insertEmoji('❤️')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f525.png" alt="🔥" onclick="insertEmoji('🔥')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f44d.png" alt="👍" onclick="insertEmoji('👍')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f600.png" alt="😀" onclick="insertEmoji('😀')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f601.png" alt="😁" onclick="insertEmoji('😁')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f602.png" alt="😂" onclick="insertEmoji('😂')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f603.png" alt="😃" onclick="insertEmoji('😃')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f604.png" alt="😄" onclick="insertEmoji('😄')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f605.png" alt="😅" onclick="insertEmoji('😅')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f606.png" alt="😆" onclick="insertEmoji('😆')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f609.png" alt="😉" onclick="insertEmoji('😉')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f60a.png" alt="😊" onclick="insertEmoji('😊')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f60b.png" alt="😋" onclick="insertEmoji('😋')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f60c.png" alt="😌" onclick="insertEmoji('😌')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f60d.png" alt="😍" onclick="insertEmoji('😍')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f60e.png" alt="😎" onclick="insertEmoji('😎')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f612.png" alt="😒" onclick="insertEmoji('😒')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f613.png" alt="😓" onclick="insertEmoji('😓')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f614.png" alt="😔" onclick="insertEmoji('😔')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f615.png" alt="😕" onclick="insertEmoji('😕')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f616.png" alt="😖" onclick="insertEmoji('😖')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f618.png" alt="😘" onclick="insertEmoji('😘')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f619.png" alt="😙" onclick="insertEmoji('😙')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f61a.png" alt="😚" onclick="insertEmoji('😚')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f61c.png" alt="😜" onclick="insertEmoji('😜')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f61d.png" alt="😝" onclick="insertEmoji('😝')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f61e.png" alt="😞" onclick="insertEmoji('😞')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f61f.png" alt="😟" onclick="insertEmoji('😟')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f622.png" alt="😢" onclick="insertEmoji('😢')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f623.png" alt="😣" onclick="insertEmoji('😣')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f624.png" alt="😤" onclick="insertEmoji('😤')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f625.png" alt="😥" onclick="insertEmoji('😥')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f626.png" alt="😦" onclick="insertEmoji('😦')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f627.png" alt="😧" onclick="insertEmoji('😧')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f628.png" alt="😨" onclick="insertEmoji('😨')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f629.png" alt="😩" onclick="insertEmoji('😩')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f62a.png" alt="😪" onclick="insertEmoji('😪')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f62b.png" alt="😫" onclick="insertEmoji('😫')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f62d.png" alt="😭" onclick="insertEmoji('😭')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f630.png" alt="😰" onclick="insertEmoji('😰')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f631.png" alt="😱" onclick="insertEmoji('😱')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f632.png" alt="😲" onclick="insertEmoji('😲')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f633.png" alt="😳" onclick="insertEmoji('😳')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f634.png" alt="😴" onclick="insertEmoji('😴')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f635.png" alt="😵" onclick="insertEmoji('😵')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f636.png" alt="😶" onclick="insertEmoji('😶')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f637.png" alt="😷" onclick="insertEmoji('😷')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f638.png" alt="😸" onclick="insertEmoji('😸')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f639.png" alt="😹" onclick="insertEmoji('😹')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f63a.png" alt="😺" onclick="insertEmoji('😺')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f63b.png" alt="😻" onclick="insertEmoji('😻')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f63c.png" alt="😼" onclick="insertEmoji('😼')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f63d.png" alt="😽" onclick="insertEmoji('😽')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f640.png" alt="🙀" onclick="insertEmoji('🙀')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f63f.png" alt="😿" onclick="insertEmoji('😿')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f63e.png" alt="😾" onclick="insertEmoji('😾')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f3b6.png" alt="🎶" onclick="insertEmoji('🎶')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f3b5.png" alt="🎵" onclick="insertEmoji('🎵')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f4a1.png" alt="💡" onclick="insertEmoji('💡')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f4a3.png" alt="💣" onclick="insertEmoji('💣')">
+                        <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f4a4.png" alt="💴" onclick="insertEmoji('💴')">
+                     
+                        <!-- 추가 이모티콘을 여기에 추가할 수 있습니다. -->
+                     </div>
+                  </div>
+                  <div class="char-count" id="charCount">0 / 2000</div>
+               </div>
+            </div>
+            <div class="form-group location-input">
+               <label for="location">위치 추가:</label>
+               <input type="text" id="location" name="location" placeholder="위치 입력">
+            </div>
+         </div>
+      </div>
+   </div>
+</form>
+</body>
+</html>

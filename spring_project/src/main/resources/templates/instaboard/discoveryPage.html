@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<style type="text/css">
+.posts-container_tam {
+   width: 100%;
+   margin: 0 auto;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+}
+
+.photo-grid-tam {
+   display: grid;
+   grid-template-columns: repeat(3, 1fr); /* 3열 그리드 */
+   gap: 5px; /* 아이템 간격 설정 */
+   justify-content: center;
+}
+
+.grid-item-tam {
+   position: relative;
+   overflow: hidden;
+   width: 300px; /* 너비를 300px로 설정 */
+   height: 300px; /* 높이를 300px로 설정 */
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   margin: 0; /* 불필요한 마진 제거 */
+}
+
+.grid-item-tam img, .grid-item-tam video {
+   width: 100%; /* 그리드 아이템의 너비에 맞춤 */
+   height: 100%; /* 그리드 아이템의 높이에 맞춤 */
+   object-fit: cover; /* 이미지나 비디오가 컨테이너에 꽉 차게 */
+   margin: 0; /* 불필요한 마진 제거 */
+}
+
+</style>
+</head>
+<body>
+   <div class="contaner">
+      <div>
+         <!-- 게시물 리스트 -->
+         <div class="posts-container_tam">
+            <div class="photo-grid-tam">
+               <!-- userImages를 통해 반복하여 이미지 또는 비디오를 표시 -->
+               <div th:each="fileSet : ${discoveryFiles}">
+                  <th:block
+                     th:each="fileName, iterStat : ${#strings.arraySplit(fileSet, ',')}">
+                     <div th:if="${iterStat.index == 0}" class="grid-item-tam">
+                        <!-- 이미지 파일인 경우 -->
+                        <img
+                           th:if="${#strings.endsWith(fileName.toLowerCase(), '.jpg') or 
+                         #strings.endsWith(fileName.toLowerCase(), '.jpeg') or 
+                         #strings.endsWith(fileName.toLowerCase(), '.png') or 
+                         #strings.endsWith(fileName.toLowerCase(), '.gif') or 
+                         #strings.endsWith(fileName.toLowerCase(), '.jfif')}"
+                           th:src="@{|/storage/${fileName.trim()}|}" alt="User Image">
+
+                        <!-- 비디오 파일인 경우 -->
+                        <video
+                           th:if="${#strings.endsWith(fileName.toLowerCase(), '.mp4') or 
+                           #strings.endsWith(fileName.toLowerCase(), '.webm') or 
+                           #strings.endsWith(fileName.toLowerCase(), '.ogg')}"
+                           th:src="@{|/storage/${fileName.trim()}|}" poster>
+                        </video>
+                     </div>
+                  </th:block>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+</body>
+</html>

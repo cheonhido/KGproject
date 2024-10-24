@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Change Profile Picture</title>
+<style>
+body {
+	font-family: Arial, sans-serif;
+	margin: 0;
+	padding: 20px;
+	background-color: #fff;
+	text-align: center;
+}
+
+h1 {
+	color: #333;
+	margin-bottom: 20px;
+	border-bottom: 1px solid #ccc;
+	padding-bottom: 10px;
+}
+
+.link {
+	display: block;
+	padding: 10px;
+	margin: 10px 0;
+	text-decoration: none;
+	color: inherit;
+	border-bottom: 1px solid #ccc;
+	cursor: pointer;
+	font-size: 16px;
+	font-weight: bold;
+}
+
+.upload-link {
+	color: #007bff;
+}
+
+.delete-link {
+	color: #dc3545;
+}
+
+.cancel-link {
+	color: #6c757d;
+}
+
+.upload-field {
+	display: none;
+}
+</style>
+</head>
+<body>
+	<h1>프로필 사진 바꾸기</h1>
+
+	<!-- 보이지 않는 폼 -->
+	<form id="uploadForm" enctype="multipart/form-data">
+		<input type="file" id="fileInput" name="profilePicture"
+			class="upload-field">
+	</form>
+
+	<a href="#" class="link upload-link"
+		onclick="document.getElementById('fileInput').click()">사진 업로드</a>
+	<a href="#" class="link delete-link" onclick="deletePicture()">기존
+		사진 삭제</a>
+	<a href="#" class="link cancel-link" onclick="window.close()">취소</a>
+
+	<script>
+        document.getElementById('fileInput').addEventListener('change', function() {
+            const fileInput = document.getElementById('fileInput');
+            const formData = new FormData();
+            formData.append('profilePicture', fileInput.files[0]);
+
+            fetch('/uploadProfilePicture', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result) {
+                    // 성공 시 부모 창 리로드하고 현재 창 닫기
+                    if (window.opener) {
+                        window.opener.location.reload();
+                    }
+                    window.close();
+                } else {
+                    alert('업로드 실패!');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('업로드 중 오류가 발생했습니다.');
+            });
+        });
+
+        function deletePicture() {
+            fetch('/deleteProfilePicture', {
+                method: 'GET'  
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result) {
+                    // 성공 시 부모 창 리로드하고 현재 창 닫기
+                    if (window.opener) {
+                        window.opener.location.reload();
+                    }
+                    window.close();
+                } else {
+                    alert('삭제 실패!');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('삭제 중 오류가 발생했습니다.');
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script type="text/javascript">
+	if("[[${result}]]" == "1"){
+		alert("댓글이 삭제되었습니다.");
+		location.href="/mainForm?post_seq=" + "[[${post_seq}]]";
+	} else {
+		alert("댓글 삭제에 실패하였습니다.");
+		history.back();
+	}
+	
+</script>
+</head>
+<body>
+
+</body>
+</html>

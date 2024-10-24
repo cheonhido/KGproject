@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reels</title>
+
+<style type="text/css">
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body, html {
+	height: 100%;
+	font-family: Arial, sans-serif;
+	background-color: #ffffff;
+}
+
+.reel-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	height: 100%;
+	width: 100%;
+	overflow-y: scroll; /* 세로 스크롤 활성화 */
+	scroll-snap-type: y mandatory;
+}
+
+/* 스크롤바 숨기기 (WebKit 기반 브라우저) */
+.reel-container::-webkit-scrollbar {
+	display: none; /* 스크롤바 완전히 숨기기 */
+}
+
+.reel-wrapper {
+	position: relative;
+	width: 550px;
+	margin-bottom: 30px;
+}
+
+.reel {
+	width: 550px;
+	height: 850px;
+	scroll-snap-align: start;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: relative;
+	background-color: #fff;
+	border: 2px solid #ddd;
+	border-radius: 10px;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	overflow: hidden;
+}
+
+video {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 1;
+}
+
+.reels_info, .reels_vertical-actions {
+	position: absolute;
+	z-index: 2;
+}
+
+.reels_info {
+	bottom: 10px;
+	left: 17px;
+	width: calc(100% - 20px);
+	position: absolute;
+	transition: bottom 0.3s ease;
+	color: white;
+}
+
+.reels_info.expanded {
+	bottom: 20%;
+}
+
+.reels_vertical-actions {
+	right: -40px;
+	bottom: 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 13px;
+}
+
+.reels_user-info {
+	display: flex;
+	align-items: center;
+	margin-bottom: 5px;
+}
+
+.profile-pic {
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	margin-right: 10px;
+}
+
+.reels_username {
+	font-weight: bold;
+}
+
+.reels_follow-btn {
+	margin-left: 20px;
+	background-color: transparent;
+	color: white;
+	border: 1px solid white;
+	padding: 5px 10px;
+	border-radius: 10px;
+	cursor: pointer;
+	font-size: 16px;
+	font-weight: bold;
+}
+
+.reels_audio-info {
+	font-size: 14px;
+	color: white;
+}
+
+.reels_like-section {
+	display: flex;
+	flex-direction: column;
+	align-items: center; /* 하트 이미지와 좋아요 수를 가운데 정렬 */
+}
+.reels_comment-section {
+	display: flex;
+	flex-direction: column;
+	align-items: center; /* 하트 이미지와 좋아요 수를 가운데 정렬 */
+	gap: 3px; /* 하트 이미지와 좋아요 수 간의 간격을 좁힘 */
+}
+.reels_msg-section {
+	display: flex;
+	flex-direction: column;
+	align-items: center; /* 하트 이미지와 좋아요 수를 가운데 정렬 */
+	margin-bottom: 9px;
+}
+a .save-button-reels {
+	display: flex;
+	flex-direction: column;
+	align-items: center; /* 하트 이미지와 좋아요 수를 가운데 정렬 */
+	margin-bottom: 20px;
+}
+.reels_more-section {
+	display: flex;
+	flex-direction: column;
+	align-items: center; /* 하트 이미지와 좋아요 수를 가운데 정렬 */
+}
+
+/*좋아요 버튼*/
+.reels-like-button{
+	border: none;
+	background: none;
+	margin: 0px;
+	padding: 0px;
+}
+
+.reels_vertical-actions img {
+	width: 27px;
+	height: 27px;
+	cursor: pointer;
+}
+
+.reels_description {
+	font-size: 14px;
+	margin-bottom: 5px;
+	overflow: hidden; /* 기본 상태에서는 오버플로우 숨김 */
+	white-space: normal; /* 줄 바꿈을 허용 */
+	text-overflow: ellipsis; /* 텍스트가 넘칠 때 '...'으로 표시 */
+	max-width: calc(100% - 20px);
+	position: relative;
+	max-height: 4.5em; /* 기본 상태의 높이 설정 */
+	transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.reels_description.expanded {
+	max-height: none; /* 높이 제한 제거 */
+	overflow: auto; /* 스크롤 표시 */
+	padding-bottom: 1em;
+}
+
+.reels_read-more {
+	color: white;
+	cursor: pointer;
+	display: inline-block;
+	margin-top: 5px;
+	font-weight: bold;
+	font-size: 12px;
+}
+
+/* 좋아요 수 표시 스타일 */
+.reels_like-count, .comment-count {
+	font-size: 12px;
+	color: #555;
+}
+
+/* 댓글 팝업창 */
+/* 댓글 팝업 창 전체적인 스타일 */
+#comment-popup-overlay, #comment-popup {
+	display: none;
+}
+
+.comment-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: none; /* 기본적으로 숨김 */
+}
+
+.comment-popup {
+    position: absolute;
+    top: 170px; /* 상단에서 떨어진 위치 */
+    right: 350px; /* 오른쪽 여백 조정 */
+    width: 350px; /* 팝업 창 너비 */
+    height: 500px; /* 팝업 창 높이 */
+    background-color: white;
+    z-index: 1001;
+    overflow-y: hidden; /* 댓글 목록 스크롤 가능 */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); /* 그림자 */
+    border-radius: 10px; /* 둥근 모서리 */
+    display: none; /* 기본적으로 숨김 */
+    display: flex;
+    flex-direction: column; /* 세로 정렬 */
+}
+
+/* 팝업 창 헤더 */
+.comment-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+    width:95%;
+    height:12%;
+    margin: auto;
+}
+.comment-popup-header-font {
+	font-size: 17px;
+	text-align: center;
+	margin-left: 150px;
+	margin-top: 10px;
+}
+
+/* x버튼*/
+.close-popup-btn {
+	border: none;
+	background: none;
+}
+/* 댓글 목록 */
+#comment-list {
+    flex-grow: 1; /* 댓글 목록이 나머지 공간을 차지 */
+    overflow-y: scroll; /* 스크롤 가능 */
+    margin-bottom: 10px;
+    width:95%;
+    height:75%;
+    margin: auto;
+}
+
+.comment {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #333;
+}
+
+.comment strong {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+/* 댓글 입력 창 스타일 */
+.comment-input {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+    width: 95%; /* 댓글 창 너비에 맞춤 */
+    height:10%;
+    box-sizing: border-box;
+    /* flex-grow: 0를 사용해서 맨 아래 고정 */
+    flex-grow: 0;
+    margin: auto;
+}
+
+.comment-input textarea {
+    width: calc(100% - 50px); /* 버튼을 제외한 나머지 공간 */
+    height: 35px;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    resize: none; /* 크기 조절 불가 */
+    overflow-y: hidden; 
+}
+
+.comment-input button {
+    width: 30px;
+    height: 30px;
+    background-color: #3897f0;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-left: 15px;
+}
+
+/* 스크롤바 커스터마이징 (선택 사항) */
+.comment-popup::-webkit-scrollbar {
+    width: 6px;
+}
+
+.comment-popup::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 3px;
+}
+
+</style>
+</head>
+<body>
+
+	<div class="reel-container">
+		<!-- 각 릴스 비디오 -->
+		<div class="reel-wrapper" th:each="post, stat : ${videoPosts}">
+			<div class="reel">
+				<video th:src="@{storage/} + ${post.board_file}" class="reel-video" autoplay muted loop controls>
+				</video>
+				<div class="reels_info">
+					<div class="reels_user-info">
+						<img th:src="@{storage/} + ${postUserList[stat.index].PFimage}" alt="Profile" class="profile-pic"> <span
+							class="reels_username">[[${post.userid}]]</span>
+						<button class="reels_follow-btn">팔로우</button>
+					</div>
+					<p class="reels_description">
+						[[${post.board_content}]]<span class="reels_read-more">&nbsp;&nbsp;...더보기</span>
+					</p>
+					<div class="reels_audio-info">🎵 Dean&nbsp;·&nbsp;Instagram</div>
+				</div>
+
+			</div>
+			<!-- 게시물 바깥 오른쪽 하단 버튼 -->
+			<div class="reels_vertical-actions">
+				<div class="reels_like-section">
+					<button th:id="'reels_like-btn-' + ${post.seq}"
+						class="reels-like-button" th:data-post-seq="${post.seq}"
+						th:data-is-liked="${post.is_liked == 1 ? 'true' : 'false'}">
+						<img th:id="'reels_like-img-' + ${post.seq}"
+							th:src="${post.is_liked == 1 ? 'img/heart2.png' : 'img/heart1.png'}"
+							alt="like-button">
+					</button>
+					<div th:id="'reels_likeSection-' + ${stat.index}" class="">
+						<span th:id="'reels_like-count-' + ${post.seq}" class="reels_like-count">[[${post.like_count}]]</span>
+					</div>
+					<!-- 좋아요 수 -->
+				</div>
+				<div class="reels_comment-section">
+					<img src="img/comment.png" class="commentButton" alt="reelsComment"	th:data-post-seq="${post.seq}">
+					<div th:id="'comment-countSection' + ${stat.index}">
+						<span th:id="'comment-count' + ${post.seq}" class="comment-count">[[${post.commentCount}]]</span>
+					</div>
+				</div>
+				<div class="reels_msg-section">
+					<img src="img/msg.png" alt="reelsShare"> 
+				</div>				
+				<a href="#" th:id="'save1Button-' + ${post.seq}"
+				   class="save-button-reels" 
+				   th:data-post-seq="${post.seq}" th:data-is-saved="${post.is_saved == 1 ? 'true' : 'false'}">
+				   <img th:src="${post.is_saved == 1 ? 'img/save5.png' : 'img/save.png'}" alt="Instagram save"
+				        th:id="'saveImage-' + ${post.seq}">
+				</a>			
+				<div class="reels_more-section">	
+					<img src="img/plus.png" alt="reelsSave">
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- 댓글 팝업 창 -->
+	<div class="comment-popup-overlay" id="comment-popup-overlay"></div>
+	<div class="comment-popup" id="comment-popup">
+	    <div class="comment-popup-header">
+	        <h2 class="comment-popup-header-font">댓글</h2>
+	        <button class="close-popup-btn" id="close-popup-btn">X</button>
+	    </div>
+	
+	    <!-- 댓글 목록 -->
+	    <div id="comment-list">
+	        <div class="comment"></div>
+	    </div>
+	
+	    <!-- 댓글 입력 창 -->
+	    <div class="comment-input">
+	        <textarea placeholder="댓글을 입력하세요..."></textarea>
+	        <button>➤</button>
+	    </div>
+	</div>
+
+
+	
+
+</body>
+</html>

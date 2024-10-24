@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<style>
+/* 기본 스타일 */
+body {
+	font-family: Arial, sans-serif;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+}
+
+h2 {
+	margin-left: 14%;
+	font-size: 35px;
+}
+
+.hashForm_feed_section {
+	padding: 20px;
+	width: 75%;
+	margin: auto;
+}
+
+/* 그리드 레이아웃 */
+.hashForm_grid_container {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 10px;
+}
+
+/* 카드 스타일 */
+.print_hashcard {
+	background-color: white;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	overflow: hidden;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	transition: transform 0.3s ease;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 300px;
+	height: 380px;
+	margin: auto; /* 카드가 중앙에 위치하도록 */
+}
+
+.print_hashcard:hover {
+	transform: scale(1.05);
+}
+
+/* 이미지 스타일 */
+.print_hashcard img {
+	width: 300px; /* 이미지 가로 크기 */
+	height: 500px; /* 이미지 세로 크기 */
+	object-fit: cover; /* 이미지 비율 유지하며 카드 크기에 맞춤 */
+}
+
+/* 해시태그 제목 */
+.print_hashcard h4 {
+	margin: 0 0 10px 0;
+	font-size: 1.25rem;
+	color: #333;
+}
+
+/* 설명 텍스트 */
+.print_hashcard p {
+	font-size: 0.9rem;
+	color: #555;
+	line-height: 1.4;
+}
+</style>
+</head>
+<body>
+	<h2>#[[${hashtag}]]</h2>
+
+	<!-- 중앙 피드 섹션 -->
+	<div class="hashForm_feed_section">
+		<!-- 그리드 컨테이너 -->
+		<div class="hashForm_grid_container">
+			<!-- posts 리스트 순회하여 이미지와 글 내용 출력 -->
+			<div th:each="post : ${posts}" class="print_hashcard">
+				<th:block
+					th:each="fileName, iterStat : ${#strings.arraySplit(post.board_file, ',')}">
+					<a th:if="${iterStat.index == 0}" href="#"
+						class="openViewButton_hash" th:data-userid="${post.userid}"
+						th:data-filename="${post.board_file}"
+						th:data-content="${post.board_content}" th:data-seq="${post.seq}"
+						th:data-comments="${#strings.listJoin(post.comments, ', ')}">
+						<img
+						th:if="${#strings.endsWith(fileName.toLowerCase(), '.jpg') or 
+                                      #strings.endsWith(fileName.toLowerCase(), '.jpeg') or 
+                                      #strings.endsWith(fileName.toLowerCase(), '.png') or 
+                                      #strings.endsWith(fileName.toLowerCase(), '.gif') or
+                                      #strings.endsWith(fileName.toLowerCase(), '.jfif')}"
+						th:src="@{storage/} + ${fileName.trim()}" alt="Post Image">
+						<video
+							th:if="${#strings.endsWith(fileName.toLowerCase(), '.mp4') or 
+                                      #strings.endsWith(fileName.toLowerCase(), '.webm') or 
+                                      #strings.endsWith(fileName.toLowerCase(), '.ogg')}"
+							th:src="@{storage/} + ${fileName.trim()}">
+						</video>
+					</a>
+				</th:block>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

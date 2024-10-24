@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DM창</title>
+<style type="text/css">
+body {
+	font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    height: 100%;
+    width: 100%;
+}
+
+.contentbox {
+	flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    width: 70%;
+    height: 100%;
+    margin: auto;
+}
+
+.message-header {
+	background: #fff;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1000;
+    flex-shrink: 0;
+    height: 10%;
+}
+
+.profile-pic {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	margin-right: 10px;
+}
+
+.header-text {
+	flex: 1;
+}
+
+#messageList {
+	background: #fff;
+	flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    overflow-y: scroll;
+    border-top: solid 1px #D5D5D5;
+    width: 100%;
+    height: 80%;
+}
+
+.message-wrapper {
+    display: contents; /* 중간 div를 레이아웃에서 무시하도록 설정 */
+}
+
+.message_date {
+	text-align: center;
+	color: lightgray;
+	border-top: 2px solid lightgray;
+}
+
+.message {
+	display: inline-block;
+	margin-bottom: 10px;
+	padding: 10px;
+	border-radius: 20px;
+	word-wrap: break-word;
+	max-width: 60%;
+	max-height: 70%;
+	box-sizing: border-box;
+	clear: both;
+}
+
+.received {
+	background: #e8e8e8;
+	align-self: flex-start; /* 왼쪽 정렬 */
+}
+
+.sent {
+	background: #0095f6;
+	color: #fff;
+	align-self: flex-end; /* 오른쪽 정렬 */
+}
+
+.message div {
+	width:100%;
+	height: 100%;
+}
+
+.dm_ImageAndVd {
+	max-width: 100%; 
+    max-height: 100%; 
+    width: auto; 
+    height: auto; 
+    border-radius: 10px;
+}
+
+.message-input-container {
+	display: flex;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+    height: 10%;
+    background: #fff;
+    padding: 10px;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1000;
+    flex-shrink: 0;
+}
+
+.input-wrapper {
+	display: flex;
+	align-items: center;
+	flex: 1;
+	background-color: #fff;
+	border-radius: 25px;
+	padding: 5px 10px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+input {
+	border: none;
+	padding: 10px;
+	border-radius: 10px;
+	flex: 1;
+	outline: none;
+	margin: 0 10px;
+}
+
+.icon {
+	width: 24px;
+	height: 24px;
+	cursor: pointer;
+}
+
+.emoji-icon {
+	margin-left: 5px;
+}
+
+.upload-icon {
+	margin-left: 11px;
+}
+
+.heart-icon {
+	margin-left: 15px;
+}
+
+input::placeholder {
+	color: #aaa;
+}
+
+button {
+	border: none;
+    background: none;
+    color: #0095f6;
+    padding: 0;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+button:active {
+    color: #007ac1;
+}
+</style>
+</head>
+<body>
+	<div class="contentbox">
+		<div class="message-header">
+			<img src="/img/logo.png" alt="Profile Picture" class="profile-pic">
+			<div class="header-text">
+				<h1 id="toUserInput">[[${to_user}]]</h1>
+			</div>
+		</div>
+		
+		<div id="messageList">
+			<div class="message-wrapper" th:each="entry : ${message_list_map}">
+				<!-- 날짜 출력 -->
+        		<h3 class="message_date">[[${entry.key}]] ([[${entry.value[0].day_of_week}]])</h3>
+			    <div class="message-wrapper" th:each="message : ${entry.value}">			    	
+					<!-- 보낸 메시지 -->
+					<div class="message sent" th:if="${message.senduser == from_user}">
+					    <!-- 이미지 메시지 -->
+					    <div th:if="${#strings.contains(message.message, '.jpg') or 
+									  #strings.contains(message.message, '.png') or 
+									  #strings.contains(message.message, '.mp4') or
+									  #strings.contains(message.message, '.jfif')}">
+					        <img class="dm_ImageAndVd" th:src="@{storage/} + ${message.message}" alt="Sent Image">
+					    </div>
+					    <!-- 텍스트 메시지 -->
+					    <div th:unless="${#strings.contains(message.message, '.jpg') or 
+										  #strings.contains(message.message, '.png') or 
+										  #strings.contains(message.message, '.mp4') or
+										  #strings.contains(message.message, '.jfif')}">
+					        [[${message.message}]]
+					    </div>
+					</div>
+					
+					<!-- 받은 메시지 -->
+					<div class="message received" th:if="${message.senduser == to_user}">
+					    <!-- 이미지 메시지 -->
+					    <div th:if="${#strings.contains(message.message, '.jpg') or 
+									  #strings.contains(message.message, '.png') or 
+									  #strings.contains(message.message, '.mp4') or
+									  #strings.contains(message.message, '.jfif')}">
+					        <img class="dm_ImageAndVd" th:src="@{storage/} + ${message.message}" alt="Received Image">
+					    </div>
+					    <!-- 텍스트 메시지 -->
+					    <div th:unless="${#strings.contains(message.message, '.jpg') or 
+										  #strings.contains(message.message, '.png') or 
+										  #strings.contains(message.message, '.mp4') or
+										  #strings.contains(message.message, '.jfif')}">
+					        [[${message.message}]]
+					    </div>
+					</div>
+			    </div>
+			</div>
+		</div>
+
+		<div class="message-input-container">
+			<div class="input-wrapper">
+				<img src="/img/smile.png" alt="Smile Emoji" class="icon emoji-icon">
+				<input type="text" id="message-input" placeholder="메시지 입력..."	autofocus> 
+					<img src="/img/mic.png" alt="mic Icon" class="icon" id="micImage"> 
+					<img src="/img/fileupload.png" alt="upload Icon" class="icon upload-icon" id="uploadImage"> 
+					<img src="/img/heart1.png" alt="Heart Icon" class="icon heart-icon" id="heart-image">
+					<button id="send-button">보내기</button>
+			</div>
+		</div>		
+	</div>
+</body>
+</html>

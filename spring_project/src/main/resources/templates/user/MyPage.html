@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Page</title>
+
+<style>
+.mypage_container {
+   width: 100%;
+   height: 100%;
+   position: relative;
+}
+
+.mypage_sub_container {
+   width: 50%; /* 너비를 75%에서 60%로 줄임 */
+   height: 100%;
+   margin: auto;
+   padding-top: 30px; /* 상단 패딩을 60px에서 30px로 줄임 */
+   padding-left: 10px; /* 좌측 패딩 추가 */
+   padding-right: 10px; /* 우측 패딩 추가 */
+}
+
+.upper-section, .lower-section {
+   padding: 20px;
+}
+
+/* 상단 영역: 왼쪽 아이콘과 중앙 내용 */
+.upper-section {
+   display: flex;
+   border-bottom: 1px solid #ccc;
+}
+
+/* 왼쪽: 프로필 아이콘 */
+.profile-picture {
+   width: 150px;
+   height: 150px;
+   border-radius: 50%;
+   overflow: hidden;
+   border: 2px solid #007bff;
+   margin-right: 80px;
+   margin-left: 100px;
+   flex-shrink: 0;
+}
+
+.profile-picture img {
+   width: 100%;
+   height: auto;
+   display: block;
+}
+
+.profile-details {
+   flex-grow: 1;
+}
+
+/* 첫 번째 줄: 아이디, 버튼들 */
+.profile-header {
+   display: flex;
+   align-items: center;
+   margin-bottom: 10px;
+}
+
+.profile-header h2 {
+   font-size: 24px;
+   margin-right: 20px;
+}
+
+.profile-header button {
+   margin-left: 10px;
+   padding: 5px 10px;
+   font-size: 14px;
+   border: none;
+   border-radius: 10px;
+   cursor: pointer;
+}
+
+.story-btn, .edit-profile-btn {
+   background-color: #f0f0f0;
+   color: #333;
+   border-radius: 10px;
+}
+
+/* 버튼 기본 스타일 */
+.edit-profile-btn, .story-btn {
+   background-color: #f0f0f0;
+   color: #333;
+   border-radius: 10px;
+}
+
+/* 버튼 호버 상태 스타일 */
+.edit-profile-btn:hover, .story-btn:hover {
+   background-color: rgba(128, 128, 128, 0.2); /* 투명한 회색 배경색 */
+   color: #333; /* 텍스트 색상 */
+}
+
+/* 두 번째 줄: 게시물, 팔로워, 팔로우 */
+.profile-stats {
+   display: flex;
+   gap: 30px;
+   margin-bottom: 10px;
+}
+
+.profile-stats div {
+   font-size: 18px;
+}
+
+.profile-stats span {
+   font-weight: bold;
+}
+
+/* 세 번째 줄: 이름 */
+.profile-name {
+   font-size: 20px;
+   margin-bottom: 10px;
+}
+
+/* 네 번째 줄: 소개 텍스트 */
+.profile-bio {
+   font-size: 16px;
+   color: #555;
+}
+
+/* 하단 영역: 사진 리스트 */
+.lower-section {
+   margin-top: 20px;
+}
+
+/* 사진 그리드 스타일 */
+.photo-grid {
+   display: grid;
+   text-align: center;
+   grid-template-columns: repeat(3, 1fr);
+   gap: 10px;
+}
+
+.photo-grid a {
+   position: relative; /* 부모 요소를 상대적으로 위치시킴 */
+   display: block;
+}
+
+.posts-container .photo-grid img, .posts-container .photo-grid video {
+   width: 100%;
+   height: 100%; /* height를 100%로 설정하여 정사각형 유지 */
+   border-radius: 8px;
+   object-fit: cover; /* 이미지 비율 유지 */
+   aspect-ratio: 1/1; /* 정사각형 비율 유지 */
+   transition: transform 0.3s ease;
+}
+
+/* 저장된 항목의 이미지와 동영상 */
+.saved-container .photo-grid img, .saved-container .photo-grid video {
+   width: 100%;
+   height: 100%;
+   border-radius: 8px;
+   object-fit: cover;
+   aspect-ratio: 1/1; /* 저장된 항목도 동일하게 1:1 비율로 유지 */
+   transition: transform 0.3s ease;
+}
+
+.photo-grid a::before {
+   content: "";
+   position: absolute;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   background-color: rgba(0, 0, 0, 0.25); /* 투명한 회색 */
+   border-radius: 8px;
+   opacity: 0;
+   transition: opacity 0.3s ease;
+}
+
+.photo-grid a, .photo-grid a:hover::before {
+   opacity: 1; /* 오버레이 표시 */
+}
+
+/* 설정 아이콘 */
+.settings-icon {
+   cursor: pointer;
+   width: 20px; /* 아이콘 크기 조정 */
+   height: 20px;
+   margin-left: 10px; /* 버튼들 사이 여백 조정 */
+}
+
+/* 버튼 스타일 */
+.toggle-buttons {
+   display: flex;
+   justify-content: center;
+   margin-bottom: 20px;
+}
+
+.toggle-buttons button {
+   display: flex;
+   align-items: center;
+   margin: 0 10px;
+   padding: 10px;
+   font-size: 16px;
+   border: none;
+   border-radius: 5px;
+   cursor: pointer;
+   background-color: transparent; /* 배경색을 투명하게 설정 */
+   color: #aaa; /* 기본적으로 글자색을 회색으로 설정 */
+   font-weight: bold; /* 글자 두껍게 설정 */
+   position: relative; /* 위치 설정을 위해 상대 위치 지정 */
+}
+
+.toggle-buttons .button-icon {
+   width: 20px; /* 아이콘 크기 조정 */
+   height: 20px;
+   margin-right: 10px; /* 텍스트와 아이콘 사이 여백 조정 */
+}
+
+.toggle-buttons .button-text {
+   display: inline-block;
+}
+
+.toggle-buttons button.active {
+   color: #000; /* 활성화된 버튼의 글자색을 검정으로 설정 */
+}
+
+/* 활성화된 버튼의 위쪽 테두리 스타일 */
+.toggle-buttons button.active::before {
+   content: ""; /* 내용 없음 */
+   position: absolute;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 1.5px; /* 위쪽 테두리 두께 */
+   background-color: #000; /* 위쪽 테두리 색상 */
+}
+
+/* 게시물 컨테이너 */
+.posts-container, .saved-container {
+   display: none; /* 기본적으로 숨김 */
+   text-align: center;
+}
+
+.posts-container.active, .saved-container.active {
+   display: block; /* 활성화된 경우 표시 */
+}
+
+/* 모달창 기본 스타일 */
+.follower-modal {
+   display: none;
+   position: fixed;
+   z-index: 1000;
+   left: 0;
+   top: 0;
+   width: 100%;
+   height: 100%;
+   background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+   position: absolute;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+   background-color: white;
+   padding: 20px;
+   border-radius: 10px;
+   width: 400px;
+   max-height: 80%;
+   overflow-y: auto;
+}
+
+.close-btn1, .close-btn2 {
+   float: right;
+   font-size: 28px;
+   font-weight: bold;
+   cursor: pointer;
+}
+
+/* 모달 내부의 검색창 스타일 */
+.search-container {
+   padding: 10px;
+   text-align: center;
+}
+
+.search-container input {
+   width: 90%;
+   padding: 8px;
+   border-radius: 5px;
+   border: 1px solid #ccc;
+   outline: none;
+}
+
+.follower-list {
+   list-style-type: none;
+   padding: 0;
+   margin-top: 10px;
+}
+
+.follower-item {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   padding: 10px 0;
+   border-bottom: 1px solid #eaeaea;
+}
+
+.follower-profile-img {
+   width: 40px;
+   height: 40px;
+   border-radius: 50%;
+   margin-right: 10px;
+}
+
+/* 팔로워 정보 (이름, 아이디) 스타일 */
+.follower-info {
+   flex-grow: 1;
+   display: flex;
+   flex-direction: column;
+}
+
+.follower-username {
+   font-weight: bold;
+}
+
+.follower-name {
+   font-size: 14px;
+   color: #888;
+}
+
+.delete-btn {
+   background-color: #ccc;
+   color: black;
+   border: none;
+   padding: 5px 10px;
+   cursor: pointer;
+   border-radius: 5px;
+   cursor: pointer;
+   font-weight: bold;
+}
+
+.following-btn {
+   background-color: #ccc;
+   color: black;
+   border: none;
+   padding: 5px 10px;
+   cursor: pointer;
+   border-radius: 5px;
+   cursor: pointer;
+   font-weight: bold;
+}
+
+/* a 태그 스타일: 밑줄 제거, 기본 글자색 유지 */
+a {
+   text-decoration: none; /* 밑줄 제거 */
+   color: inherit; /* 부모 요소의 글자색을 상속 */
+   cursor: default; /* 기본 커서 */
+}
+
+/* a 태그 hover 시 커서 모양을 손 모양으로 변경 */
+a:hover {
+   cursor: pointer; /* 커서를 손 모양으로 변경 */
+}
+
+/* 모달 스타일 */
+.modal {
+   display: none; /* 기본적으로 숨김 */
+   position: fixed;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+   width: 80%;
+   max-width: 300px;
+   background-color: #fff;
+   z-index: 1000; /* 모달 위에 배치 */
+}
+
+/* 모달 내용 스타일 */
+.modal-content {
+   padding: 20px;
+   position: relative;
+}
+
+/* 닫기 버튼 스타일 */
+.closeBtn {
+   position: absolute;
+   top: 10px;
+   right: 10px;
+   font-size: 24px;
+   cursor: pointer;
+}
+/* 이미지 스타일 (필요시) */
+#modalImage {
+   width: 100%; /* 이미지가 모달에 맞게 크기 조정 */
+}
+
+.saved-container, .posts-container {
+   width: 100%;
+   margin: 0 auto;
+}
+
+.photo-grid {
+   display: grid;
+   grid-template-columns: repeat(3, 1fr); /* 3열 그리드 */
+   gap: 10px; /* 아이템 간격 */
+}
+
+.grid-item {
+   position: relative;
+   overflow: hidden;
+   width: 100%;
+   height: 100%; /* 원하는 높이 지정 */
+}
+
+.grid-item img, .grid-item video {
+   width: 100%; /* 그리드 아이템의 너비에 맞춤 */
+   height: 100%; /* 그리드 아이템의 높이에 맞춤 */
+   object-fit: cover; /* 이미지나 비디오가 컨테이너에 꽉 차게 */
+   border-radius: 8px; /* 모서리 둥글게 (선택사항) */
+}
+
+.point-button {
+   position: absolute; /* 위치를 상단에 고정 */
+   top: 35px; /* 상단에서 10px 아래에 위치 */
+   left: 480px; /* 왼쪽에서 10px 오른쪽에 위치 */
+}
+
+.point-img {
+   width: 30px; /* 이미지 크기 */
+   height: 30px; /* 이미지 크기 */
+   cursor: pointer; /* 커서를 손 모양으로 변경 */
+}
+</style>
+
+<script type="text/javascript">
+   document.addEventListener('DOMContentLoaded', function() {
+      // 조건 문 
+      var pageid = "[[${mydb.userid}]]";
+      var loginid = "[[${loginid.userid}]]";
+
+      const profileModifyBtn = document.getElementById("profileModifyBtn");
+
+      const profileModify = document.getElementById("profileModify");
+      const imageModal = document.getElementById("imageModal");
+      const closeBtn = document.getElementsByClassName("closeBtn")[0];
+
+      if (pageid !== loginid) {
+         profileModifyBtn.style.opacity = '0'; // 버튼 숨기기 (투명도)
+         profileModifyBtn.style.pointerEvents = 'none'; // 클릭 방지
+
+         // onclick 속성 변경
+         profileModify.removeAttribute('onclick'); // 기존 onclick 속성 제거
+
+         // 버튼 클릭 시 모달 열기
+         profileModify.addEventListener('click', function() {
+            imageModal.style.display = 'block';
+         });
+
+         // 모달 닫기 버튼 클릭 시 모달 닫기
+         closeBtn.addEventListener('click', function() {
+            imageModal.style.display = 'none';
+         });
+
+         // 모달 외부 클릭 시 모달 닫기
+         window.addEventListener('click', function(event) {
+            if (event.target === imageModal) {
+               imageModal.style.display = 'none';
+            }
+         });
+      }
+   });
+</script>
+
+</head>
+<body>
+   <div class="mypage_container">
+      <div class="mypage_sub_container">
+         <!-- 상단 구역 -->
+         <div class="upper-section">
+
+            <!-- 왼쪽: 프로필 아이콘 -->
+            <div class="profile-picture">
+               <a id="profileModify" href="#"
+                  th:onclick="changePicture([[${mydb.userid}]])"> <img
+                  th:src="@{storage/} + ${mydb.PFimage}" alt="Profile Picture">
+               </a>
+
+            </div>
+
+            <!-- 중앙: 프로필 정보와 버튼들 -->
+            <div class="profile-details">
+               <!-- 왼쪽 상단에 point.png 이미지 버튼 추가 -->
+               <div class="point-button">
+                  <a href="/mainForm"> <img src="img/point.png" alt="Point Button"
+                     class="point-img">
+                  </a>
+               </div>
+               <!-- 첫 번째 줄: 아이디와 버튼들 -->
+               <div class="profile-header">
+                  <h2 th:text="${mydb.userid}">아이디</h2>
+                  <button id="profileModifyBtn" class="edit-profile-btn">프로필
+                     편집</button>
+                  <button class="story-btn">보관된 스토리 보기</button>
+                  <img src="/img/set.png" alt="설정" id="settings-icon"
+                     class="settings-icon">
+               </div>
+
+               <!-- 이미지 표시 모달 추가 -->
+               <div id="imageModal" class="modal" style="display: none;">
+                  <div class="modal-content">
+                     <span class="closeBtn">&times;</span> <img id="modalImage"
+                        th:src="@{storage/} + ${mydb.PFimage}" alt="Profile Picture">
+                  </div>
+               </div>
+
+               <!-- 두 번째 줄: 게시물, 팔로워, 팔로우 -->
+               <div class="profile-stats">
+                  <div>
+                     게시물 <span th:text="${postCount}">0</span>
+                  </div>
+                  <div>
+                     <a href="#" id="follower-link">팔로워 <span
+                        th:text="${mydb.follower}"></span></a>
+                  </div>
+                  <div>
+                     <a href="#" id="follow-link">팔로우 <span
+                        th:text="${mydb.follow}"></span></a>
+                  </div>
+               </div>
+
+               <!-- 세 번째 줄: 이름 -->
+               <div class="profile-name" th:text="${mydb.username}">이름</div>
+
+               <!-- 네 번째 줄: 소개 텍스트 -->
+               <div class="profile-bio" th:text="${mydb.introduce}">소개 텍스트가
+                  여기에 표시됩니다.</div>
+            </div>
+         </div>
+
+         <!-- 하단 구역: 게시물 및 저장됨 전환 버튼 -->
+         <div class="toggle-buttons">
+            <button id="posts-btn" class="active">
+               <img src="/img/menu.png" alt="게시물" class="button-icon"> <span
+                  class="button-text">게시물</span>
+            </button>
+            <button id="saved-btn">
+               <img src="/img/save2.png" alt="저장됨" class="button-icon"> <span
+                  class="button-text">저장됨</span>
+            </button>
+         </div>
+
+         <!-- 게시물 리스트 -->
+         <div class="posts-container active">
+            <div class="photo-grid">
+               <!-- userImages를 통해 반복하여 이미지 또는 비디오를 표시 -->
+               <div th:each="imageSet : ${userImages}">
+                  <!-- 이미지와 비디오 파일들을 ','로 분리 -->
+                  <th:block
+                     th:each="fileName, iterStat : ${#strings.arraySplit(imageSet, ',')}">
+                     <div th:if="${iterStat.index == 0}" class="grid-item">
+                        <!-- 이미지 파일인 경우 -->
+                        <a> <img
+                           th:if="${#strings.endsWith(fileName.toLowerCase(), '.jpg') or 
+                                    #strings.endsWith(fileName.toLowerCase(), '.jpeg') or 
+                                    #strings.endsWith(fileName.toLowerCase(), '.png') or 
+                                    #strings.endsWith(fileName.toLowerCase(), '.gif') or 
+                                    #strings.endsWith(fileName.toLowerCase(), '.jfif')}"
+                           th:src="@{storage/} + ${fileName.trim()}" alt="User Image">
+
+                           <!-- 비디오 파일인 경우 --> <video
+                              th:if="${#strings.endsWith(fileName.toLowerCase(), '.mp4') or 
+                                     #strings.endsWith(fileName.toLowerCase(), '.webm') or 
+                                     #strings.endsWith(fileName.toLowerCase(), '.ogg')}"
+                              th:src="@{storage/} + ${fileName.trim()}" poster>
+                           </video>
+                        </a>
+                     </div>
+                  </th:block>
+               </div>
+            </div>
+         </div>
+
+         <!-- 저장된 게시물 리스트 -->
+         <div class="saved-container">
+            <div class="photo-grid">
+               <div th:each="post : ${savedPosts}">
+                  <th:block
+                     th:each="fileName, iterStat : ${#strings.arraySplit(post.board_file, ',')}">
+                     <a th:if="${iterStat.index == 0}" href="#" class="openViewButton"
+                        th:data-userid="${post.userid}"
+                        th:data-filename="${post.board_file}"
+                        th:data-content="${post.board_content}"
+                        th:data-seq="${post.seq}"
+                        th:data-comments="${#strings.listJoin(post.comments, ', ')}">
+                        <img
+                        th:if="${#strings.endsWith(fileName.toLowerCase(), '.jpg') or 
+                                      #strings.endsWith(fileName.toLowerCase(), '.jpeg') or 
+                                      #strings.endsWith(fileName.toLowerCase(), '.png') or 
+                                      #strings.endsWith(fileName.toLowerCase(), '.gif') or
+                                      #strings.endsWith(fileName.toLowerCase(), '.jfif')}"
+                        th:src="@{storage/} + ${fileName.trim()}" alt="Post Image">
+                        <video
+                           th:if="${#strings.endsWith(fileName.toLowerCase(), '.mp4') or 
+                                      #strings.endsWith(fileName.toLowerCase(), '.webm') or 
+                                      #strings.endsWith(fileName.toLowerCase(), '.ogg')}"
+                           th:src="@{storage/} + ${fileName.trim()}">
+                        </video>
+                     </a>
+                  </th:block>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- 모달창 -->
+      <div id="follower-modal" class="follower-modal">
+         <div class="modal-content">
+            <span class="close-btn1">&times;</span>
+            <h2>팔로워</h2>
+
+            <!-- 검색창 -->
+            <div class="search-container">
+               <input type="text" id="follower-search" placeholder="검색">
+            </div>
+
+            <!-- 팔로워 목록 -->
+            <ul class="follower-list">
+               <th:block th:each="follower : ${followerList}">
+                  <li class="follower-item">
+                     <!-- 프로필 이미지 --> <img th:src="@{storage/} + ${follower.PFimage}"
+                     alt="Profile Picture" class="follower-profile-img"> <!-- 팔로워 정보 (이름, 아이디) -->
+                     <div class="follower-info">
+                        <span th:text="${follower.userid}" class="follower-username"></span>
+                        <span th:text="${follower.username}" class="follower-name"></span>
+                     </div> <!-- 삭제 버튼 -->
+                     <button class="delete-btn">삭제</button>
+                  </li>
+               </th:block>
+            </ul>
+         </div>
+      </div>
+
+      <div id="follow-modal" class="follower-modal">
+         <div class="modal-content">
+            <span class="close-btn2">&times;</span>
+            <h2>팔로잉</h2>
+
+            <!-- 검색창 -->
+            <div class="search-container">
+               <input type="text" id="follower-search" placeholder="검색">
+            </div>
+
+            <!-- 팔로잉 목록 -->
+            <ul class="follower-list">
+               <th:block th:each="follower : ${followList}">
+                  <li class="follower-item">
+                     <!-- 프로필 이미지 --> <img th:src="@{storage/} + ${follower.PFimage}"
+                     alt="Profile Picture" class="follower-profile-img"> <!-- 팔로워 정보 (이름, 아이디) -->
+                     <div class="follower-info">
+                        <span th:text="${follower.userid}" class="follower-username"></span>
+                        <span th:text="${follower.username}" class="follower-name"></span>
+                     </div> <!-- 삭제 버튼 -->
+                     <button class="following-btn">팔로잉</button>
+                  </li>
+               </th:block>
+            </ul>
+         </div>
+      </div>
+
+      <!-- javascript 파일 -->
+      <script type="text/javascript" src="../js/UserScript.js?v=6"></script>
+</body>
+</html>

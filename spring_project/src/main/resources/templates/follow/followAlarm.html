@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	<h3>알람</h3><br>
+	<table>
+		<tr th:each="dto : ${list}">
+			<td>[[${dto.from_user}]] 님이 회원님을 팔로우하기 시작했습니다.</td>
+			<td>
+				<form action="/followResponse" method="post" name="form1">				
+					<input type="hidden" th:value="${dto.from_user}" name="from_user" id="fromUser">
+                    <input type="button" class="followBtn" value="팔로잉">
+				</form>
+			</td>
+		</tr>
+	</table>
+	
+	 <script>
+        // 모든 "followBtn" 클래스를 가진 버튼에 대해 클릭 이벤트 리스너를 추가
+        document.querySelectorAll(".followBtn").forEach(function(button) {
+            button.addEventListener("click", function() {
+                // 클릭된 버튼과 연결된 form 요소를 찾음
+                var form = button.closest("form");
+                // form 내에 있는 fromUser 값을 가져옴
+                var fromUserValue = form.querySelector("#fromUser").value;
+
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "/followResponse", true);
+                xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === XMLHttpRequest.DONE) {
+                        if (xhr.status === 200) {
+                            // 서버 응답이 성공적일 때 버튼의 value를 "팔로우 요청함"으로 변경
+                            button.value = "팔로우 요청함";
+                            button.disabled = true; // 버튼을 비활성화 (선택 사항)
+                        } else {
+                            // 서버에서 오류가 발생한 경우 경고 메시지 표시
+                            alert("팔로우 요청 중 오류가 발생했습니다.");
+                        }
+                    }
+                };
+
+                // 폼 데이터를 URL 인코딩하여 전송
+                xhr.send("from_user=" + encodeURIComponent(fromUserValue));
+            });
+        });
+    </script>
+</body>
+</html>
+
+

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+
+</head>
+<body>
+	<!-- 페이지 로딩이 완료된 후 스크립트 실행 -->
+    <script type="text/javascript">
+        window.onload = function() {
+        	alert("게시물 공유중");
+            
+        	// 부모 창 새로 고침
+            window.opener.location.reload();
+            // 현재 창 닫기
+            window.close();
+        };
+    </script>
+	
+	
+</body>
+</html>

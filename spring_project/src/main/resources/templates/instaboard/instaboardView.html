@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>상세보기</title>
+<script type="text/javascript">
+document.addEventListener('DOMContentLoaded', () => {
+    const heartButton = document.getElementById('heart1Button');
+    const heartImage = document.getElementById('heart1Image');
+    const likesCount = document.getElementById('likesCount');
+    const commentInput = document.getElementById('commentInput');
+    const commentButton = document.getElementById('commentButton');
+    const addCommentButton = document.getElementById('addCommentButton');
+    const commentsContainer = document.getElementById('comments');
+    const saveButton = document.getElementById('saveButton');
+    const saveImage = document.getElementById('saveImage');
+    const emojiPicker = document.getElementById('emojiPicker'); // 이모지 선택기
+    const emojiToggle = document.querySelector('.view_emoji-toggle'); // 이모지 토글 버튼
+    
+    // 좋아요 버튼 기능
+   const heartButtons = document.querySelectorAll('.heart-button');
+
+    heartButtons.forEach((heartButton) => {
+        heartButton.addEventListener('click', () => {
+            const postSeq = heartButton.getAttribute('data-post-seq'); // 데이터 속성 가져오기
+            const isLiked = heartButton.getAttribute('data-is-liked') === 'true'; // 좋아요 여부 확인
+
+            // 좋아요 상태 변경을 위한 AJAX 요청
+            likePost(postSeq, isLiked, heartButton);
+        });
+    });
+
+    function likePost(postSeq, isLiked, heartButton) {
+        const url = isLiked ? '/unlikePost' : '/likePost'; // 좋아요 여부에 따른 URL 설정
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                post_seq: postSeq
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // 상세화면의 좋아요 개수 업데이트
+                const currentLikeCount = document.getElementById('likesCount-' + postSeq);
+                if (currentLikeCount) {
+                    currentLikeCount.innerText = data.likeCount; // 좋아요 개수 업데이트
+                }
+
+                // 상세화면의 좋아요 상태 업데이트 (하트 이미지 변경)
+                heartButton.setAttribute('data-is-liked', !isLiked); // 좋아요 상태 토글
+                const heartImage = heartButton.querySelector('img');
+                if (heartImage) {
+                    heartImage.src = !isLiked ? 'img/heart2.png' : 'img/heart1.png'; // 좋아요 상태에 따른 이미지 변경
+                } else {
+                    console.error('하트 이미지를 찾을 수 없습니다.');
+                }
+
+                // 부모 창의 좋아요 개수 업데이트
+                if (window.opener && !window.opener.closed) {
+                    const parentLikeCountElement = window.opener.document.getElementById('likesCount-' + postSeq);
+                    if (parentLikeCountElement) {
+                        parentLikeCountElement.innerText = data.likeCount; // 부모 창 좋아요 개수 업데이트
+                    }
+
+                    // 부모 창의 좋아요 상태(하트 이미지) 업데이트
+                    const parentHeartButton = window.opener.document.querySelector(`button[data-post-seq="${postSeq}"]`);
+                    if (parentHeartButton) {
+                        const parentHeartImage = parentHeartButton.querySelector('img');
+                        if (parentHeartImage) {
+                            parentHeartButton.setAttribute('data-is-liked', !isLiked);
+                            parentHeartImage.src = !isLiked ? 'img/heart2.png' : 'img/heart1.png'; // 부모 창의 하트 이미지 업데이트
+                        } else {
+                            console.error('부모 창의 하트 이미지를 찾을 수 없습니다.');
+                        }
+                    } else {
+                        console.error('부모 창의 heartButton을 찾을 수 없습니다.');
+                    }
+                }
+            } else {
+                alert('좋아요 처리에 실패했습니다.');
+            }
+        })
+        .catch(error => {
+            console.error('오류 발생:', error);
+            alert('좋아요 처리 중 오류가 발생했습니다.');
+        });
+    }
+
+    
+    // comment.png 클릭 시 comment-input에 포커스
+    commentButton.addEventListener('click', (event) => {
+        event.preventDefault(); // 링크 기본 동작 방지 (필요에 따라)
+        commentInput.focus(); // 커서가 깜빡이게 함
+    });
+    
+    // 댓글 입력란의 값이 변경될 때마다 호출되는 함수
+    commentInput.addEventListener('input', () => {
+        if (commentInput.value.trim()) {
+            addCommentButton.classList.add('active'); // 댓글이 있을 때 버튼을 불투명하게
+        } else {
+            addCommentButton.classList.remove('active'); // 댓글이 없을 때 버튼을 반투명하게
+        }
+    });
+    
+   // 댓글 추가 기능
+   addCommentButton.addEventListener('click', () => {
+       const commentText = commentInput.value.trim();
+       const postId = document.getElementById('postId').value;
+       const userid = document.getElementById('userid').value;
+   
+       if (commentText) {
+           fetch('/comment/add', {
+               method: 'POST',
+               headers: {
+                   'Content-Type': 'application/x-www-form-urlencoded'
+               },
+               body: new URLSearchParams({
+                   postId: postId,
+                   content: commentText,
+                   userid: userid
+               })
+           })
+           .then(response => response.json())
+           .then(data => {
+               // 새로운 댓글을 상단에 추가
+               const newComment = document.createElement('div');
+               newComment.className = 'comment';
+               newComment.textContent = `${userid}: ${commentText}`;
+               
+               // 댓글을 가장 위에 추가
+               commentsContainer.insertBefore(newComment, commentsContainer.firstChild);
+   
+               // 댓글 입력란 초기화
+               commentInput.value = '';
+           })
+           .catch(error => {
+               console.error('댓글 추가 중 오류 발생:', error);
+               alert('댓글 추가 중 오류가 발생했습니다.');
+           });
+       }
+   });
+
+
+
+    // 이모지 추가 함수
+    function insertEmoji(emoji) {
+        const cursorPos = commentInput.selectionStart;
+        const textBefore = commentInput.value.substring(0, cursorPos);
+        const textAfter = commentInput.value.substring(cursorPos, commentInput.value.length);
+        commentInput.value = textBefore + emoji + textAfter;
+        commentInput.selectionStart = commentInput.selectionEnd = cursorPos + emoji.length;
+        commentInput.focus();
+    }
+
+    // 이모지 선택기 토글 함수
+    function toggleEmojiPicker() {
+        emojiPicker.classList.toggle('show');
+    }
+
+    // 이모지 토글 버튼에 이벤트 리스너 추가
+    emojiToggle.addEventListener('click', toggleEmojiPicker);
+
+    // 이모지 이미지에 클릭 이벤트 추가
+    emojiPicker.querySelectorAll('img').forEach(img => {
+        img.addEventListener('click', () => {
+            insertEmoji(img.alt);
+            toggleEmojiPicker(); // 선택 후 이모지 선택기 닫기
+        });
+    });
+
+    // 캐러셀 초기 설정
+    let slideIndex = 0;
+    const slides = document.getElementsByClassName("carousel-slide");
+
+    function showSlide(index) {
+        for (let i = 0; i < slides.length; i++) {
+            slides[i].style.display = "none";
+        }
+        slides[index].style.display = "block";
+    }
+
+    function nextSlide() {
+        slideIndex = (slideIndex + 1) % slides.length;
+        showSlide(slideIndex);
+    }
+
+    function prevSlide() {
+        slideIndex = (slideIndex - 1 + slides.length) % slides.length;
+        showSlide(slideIndex);
+    }
+   
+    // 슬라이드가 1개보다 많을 경우에만 화살표를 표시
+    if (slides.length > 1) {
+        document.querySelector('.left-arrow').style.display = 'block';
+        document.querySelector('.right-arrow').style.display = 'block';
+    } else {
+        document.querySelector('.left-arrow').style.display = 'none';
+        document.querySelector('.right-arrow').style.display = 'none';
+    }
+    
+    // 처음 슬라이드 표시
+    showSlide(slideIndex);
+
+    // 버튼 이벤트 리스너 추가
+    document.querySelector('.left-arrow').addEventListener('click', prevSlide);
+    document.querySelector('.right-arrow').addEventListener('click', nextSlide);
+    
+    // 동영상 재생 제한 설정
+    const videos = document.querySelectorAll('.carousel-slide video');
+    videos.forEach((video) => {
+        let playCount = 0;
+        const maxPlays = 10; // 최대 재생 횟수
+        video.addEventListener('ended', () => {
+            playCount++;
+            if (playCount >= maxPlays) {
+                video.pause();
+                video.currentTime = 0; // 재생 위치 초기화 (필요에 따라 제거 가능)
+            } else {
+                video.play(); // 다음 재생
+            }
+        });
+    });
+   
+    // 저장 버튼 기능
+    const saveButtons = document.querySelectorAll('.save-button');
+
+    saveButtons.forEach((saveButton) => {
+        saveButton.addEventListener('click', () => {
+            const postSeq = saveButton.getAttribute('data-post-seq'); // 데이터 속성 가져오기
+            const isSaved = saveButton.getAttribute('data-is-saved') === 'true'; // 저장 여부 확인
+
+            // 저장 상태 변경을 위한 AJAX 요청
+            toggleSave(postSeq, isSaved, saveButton);
+        });
+    });
+
+    function toggleSave(postSeq, isSaved, saveButton) {
+        const url = `/toggleSavePost/${postSeq}`; // 저장 여부에 따른 URL 설정
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                post_seq: postSeq
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.saved) {
+                // 상세화면의 저장 상태 업데이트 (저장 이미지 변경)
+                saveButton.setAttribute('data-is-saved', !isSaved); // 저장 상태 토글
+                const saveImage = saveButton.querySelector('img');
+                if (saveImage) {
+                    saveImage.src = !isSaved ? 'img/save5.png' : 'img/save.png'; // 저장 상태에 따른 이미지 변경
+                } else {
+                    console.error('저장 이미지를 찾을 수 없습니다.');
+                }
+
+                // 부모 창의 저장 상태 업데이트
+                if (window.opener && !window.opener.closed) {
+                    const parentSaveButton = window.opener.document.querySelector(`a[data-post-seq="${postSeq}"]`);
+                    if (parentSaveButton) {
+                        const parentSaveImage = parentSaveButton.querySelector('img');
+                        if (parentSaveImage) {
+                            parentSaveButton.setAttribute('data-is-saved', !isSaved);
+                            parentSaveImage.src = !isSaved ? 'img/save5.png' : 'img/save.png'; // 부모 창의 저장 이미지 업데이트
+                        } else {
+                            console.error('부모 창의 저장 이미지를 찾을 수 없습니다.');
+                        }
+                    } else {
+                        console.error('부모 창의 saveButton을 찾을 수 없습니다.');
+                    }
+                }
+            } else {
+                alert('저장 처리에 실패했습니다.');
+            }
+        })
+        .catch(error => {
+            console.error('오류 발생:', error);
+            alert('저장 처리 중 오류가 발생했습니다.');
+        });
+    }
+    
+    // 페이지 로드시 게시글 저장 상태 적용
+   window.onload = function() {
+       fetch('/savedPosts')
+       .then(response => response.json())
+       .then(savedPostIds => {
+           savedPostIds.forEach(postSeq => {
+               const saveButton = document.querySelector(`.save-button[data-post-seq="${postSeq}"]`);
+               if (saveButton && saveButton.dataset.isSaved !== 'true') {
+                   const saveImage = document.getElementById('saveImage-' + postSeq);
+                   saveImage.src = 'img/save5.png';  // 저장된 상태로 이미지 변경
+                   saveButton.dataset.isSaved = 'true';  // 저장 상태 업데이트
+               }
+           });
+       })
+       .catch(error => console.error('Error:', error));
+   };
+
+    
+});
+
+</script>
+<style>
+/* CSS 스타일 정의 */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #fafafa;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    display: flex;
+    width: 90%;
+    max-width: 900px;
+    background-color: #fff;
+    border: 1px solid #dbdbdb;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 시은 수정 시작  */
+.left-section {
+    flex: 1;
+    background-color: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    max-width: 640px; /* 최대 너비를 고정해줍니다 */
+    height: 700px; /* 고정된 높이 설정 */
+}
+
+/* 이미지, 동영상 캐러셀 스타일 */
+.carousel-container {
+   position: relative;
+   width: 100%;
+   max-width: 640px; /* 게시물의 최대 너비 설정 */
+   height: 700px; /* 게시물의 고정 높이 설정 */
+   margin: auto;
+   overflow: hidden; /* 슬라이드가 컨테이너 밖으로 넘치지 않도록 설정 */
+}
+
+.carousel-slides {
+   display: flex; /* 슬라이드들이 옆으로 나란히 배치되도록 설정 */
+   transition: transform 0.5s ease-in-out; /* 슬라이드 전환 시 부드러운 효과 */
+   width: 100%; /* 슬라이드의 너비를 전체 컨테이너 너비로 설정 */
+   height: 100%; /* 슬라이드 높이를 컨테이너 높이에 맞춤 */
+}
+
+.carousel-slide {
+   flex: 0 0 100%;
+    box-sizing: border-box;
+    height: 100%; /* 슬라이드 높이 고정 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* 넘치는 부분 숨기기 */
+}
+
+.carousel-slide img, .carousel-slide video {
+   width: 100%; /* 이미지나 비디오가 슬라이드의 최대 너비를 넘지 않도록 설정 */
+   height: 100%; /* 이미지나 비디오가 슬라이드의 최대 높이를 넘지 않도록 설정 */
+   object-fit: cover; /* 컨테이너에 맞게 크기 조정 및 잘리도록 설정 */
+}
+
+.carousel-arrow {
+   position: absolute;
+   top: 50%;
+   transform: translateY(-50%); /* 화살표가 세로 가운데에 위치하도록 설정 */
+   font-size: 24px;
+   color: white;
+   background-color: rgba(0, 0, 0, 0.5); /* 반투명한 배경색으로 가시성을 높임 */
+   padding: 10px;
+   cursor: pointer; /* 마우스를 올렸을 때 클릭 가능하도록 설정 */
+   z-index: 100; /* 화살표가 다른 요소들보다 위에 표시되도록 설정 */
+}
+
+.left-arrow {
+   left: 10px; /* 왼쪽 화살표의 위치를 컨테이너의 왼쪽에서 10px 떨어지도록 설정 */
+}
+
+.right-arrow {
+   right: 10px;
+}
+/* 시은 수정 끝 */
+
+.right-section {
+    width: 350px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #dbdbdb;
+    padding-bottom: 10px;
+}
+
+.profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 12px;
+}
+
+.username {
+    font-weight: bold;
+}
+
+.content-container {
+    margin-bottom: 20px;
+    max-height: 465px;
+    overflow-y: scroll;
+}
+
+.content-container::-webkit-scrollbar {
+    display: none;
+}
+
+.description {
+    margin-bottom: 20px;
+}
+
+.comment_page {
+    margin-top: 10px;
+}
+
+.comment {
+    margin-bottom: 10px;
+}
+
+.comment-section {
+    display: flex;
+    align-items: center;
+    border-top: 1px solid #dbdbdb;
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+.comment-input {
+    flex: 1;
+    margin-right: 10px;
+    padding: 10px;
+    border: none;
+    font-size: 18px;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.add-comment-button {
+    padding: 10px;
+    background-color: transparent;
+    color: #007bff;
+    border: 2px solid transparent;
+    cursor: pointer;
+    opacity: 0.5;
+}
+
+.add-comment-button.active {
+    opacity: 1;
+    border-color: #007bff;
+}
+
+.like-section, .Viewbutton-section {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    margin-top: 10px;
+}
+
+.like-section img, .Viewbutton-section img {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.like-count {
+    font-weight: bold;
+}
+
+.bottom-section {
+    margin-top: auto;
+    padding: 0;
+    width: 100%;
+    box-sizing: border-box;
+    border-top: 1px solid #dbdbdb;
+}
+
+.Viewpost-time {
+    font-size: 12px;
+    color: gray;
+}
+.emoji-picker-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.view_emoji-picker {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    padding: 5px;
+    z-index: 10;
+    max-height: 300px;
+    overflow-y: auto;
+    width: 300px;
+}
+
+.view_emoji-picker::before {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid #fff;
+    z-index: 1001;
+}
+
+.view_emoji-picker img {
+    cursor: pointer;
+    margin: 2px;
+}
+
+.view_emoji-picker.show {
+    display: block;
+}
+
+.view_emoji-toggle {
+    cursor: pointer;
+    height: 24px;
+    width: 24px;
+}
+
+.view_emoji-picker::-webkit-scrollbar {
+    width: 8px;
+}
+
+.view_emoji-picker::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.view_emoji-picker::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+    border-radius: 4px;
+}
+
+/* 시은 수정 시작 */
+.heart-button {
+    border: none; /* 버튼 테두리 제거 */
+    background: none; /* 버튼 배경 제거 */
+    padding: 0; /* 버튼 기본 여백 제거 */
+    outline: none; /* 포커스 시 테두리 제거 */
+    cursor: pointer; /* 클릭할 수 있는 손 모양 커서 */
+}
+/* 시은 수정 끝 */
+
+</style>
+
+</head>
+<body>
+    <div class="container">
+        <div class="left-section">
+            <div class="carousel-container">
+                <span class="carousel-arrow left-arrow" onclick="prevSlide()">
+                    &#10094;
+                </span>
+            
+                <div class="carousel-slides">
+                    <!-- 이미지 슬라이드 -->
+                    <th:block th:each="file : ${fileNames}">
+                        <div class="carousel-slide">
+                            <img th:if="${#strings.endsWith(file.toLowerCase(), '.jpg') or 
+                                        #strings.endsWith(file.toLowerCase(), '.jpeg') or 
+                                        #strings.endsWith(file.toLowerCase(), '.png') or 
+                                        #strings.endsWith(file.toLowerCase(), '.gif') or
+                                        #strings.endsWith(file.toLowerCase(), '.jfif')}"
+                                 th:src="@{storage/} + ${file.trim()}" alt="Post Image" class="post-media">
+                            <video th:if="${#strings.endsWith(file.toLowerCase(), '.mp4') or 
+                                          #strings.endsWith(file.toLowerCase(), '.webm') or 
+                                          #strings.endsWith(file.toLowerCase(), '.ogg')}" 
+                                   th:src="@{storage/} + ${file.trim()}"
+                                   width="640" height="360"
+                                   class="post-media"
+                                   autoplay muted loop controls>
+                            </video>
+                        </div>
+                    </th:block>
+                </div>
+            
+                <span class="carousel-arrow right-arrow" onclick="nextSlide()">
+                    &#10095;
+                </span>
+            </div>
+        </div>
+      <!-- 오른쪽 섹션 -->
+        <div class="right-section">
+            <div>
+                <div class="header">
+                    <img th:src="@{storage/} + ${postUserInfo.PFimage}" alt="Profile Picture" class="profile-pic">
+                    <span class="username">[[${userid}]]</span>
+                </div>
+
+                <div class="content-container">
+                    <div class="description">
+                        <div class="header">
+                            <img th:src="@{storage/} + ${postUserInfo.PFimage}" alt="Profile Picture" class="profile-pic">
+                            <span class="username">[[${userid}]]</span>&nbsp;&nbsp;
+                            <p th:utext="${content}"></p>
+                        </div>
+                        
+                    </div>
+               <!-- 댓글 섹션 -->
+               <div class="comment_page" id="comments">
+                   <th:block th:each="comment : ${commentList}">
+                       <div class="comment">
+                           <span th:text="${comment.userid}"></span>: <span th:text="${comment.content}"></span>
+                       </div>
+                   </th:block>
+               </div>
+                </div>
+            </div>
+
+            <div class="bottom-section">
+                <div class="Viewbutton-section">
+                   <!-- 좋아요 버튼 섹션 -->
+                    <button th:attr="id='heart1Button-' + ${dto.seq}" 
+                        class="heart-button" 
+                        th:data-post-seq="${dto.seq}" 
+                        th:data-is-liked="${isLiked ? 'true' : 'false'}">
+                    <img th:attr="id='heart1Image-' + ${dto.seq}" 
+                         th:src="${isLiked ? 'img/heart2.png' : 'img/heart1.png'}" 
+                         alt="Instagram heart">
+                </button>
+                    <a href="#" id="commentButton">
+                        <img src="img/comment.png" alt="Instagram comment" class="logo">
+                    </a>
+                    <a href="#">
+                        <img src="img/msg.png" alt="Instagram msg" class="logo">
+                    </a>
+                    <!-- 게시글 저장하기 -->
+                    <a href="javascript:void(0);" th:id="'save1Button-' + ${dto.seq}"
+                  class="save-button" 
+                  th:data-post-seq="${dto.seq}" 
+                  th:data-is-saved="${dto.is_saved == 1 ? 'true' : 'false'}">
+                  <img th:src="${dto.is_saved == 1 ? 'img/save5.png' : 'img/save.png'}" 
+                       alt="Instagram save" 
+                       class="logo" 
+                       th:id="'saveImage-' + ${dto.seq}">
+               </a>
+                </div>
+
+                <div class="likes-section">
+                    좋아요 <span th:id="'likesCount-' + ${dto.seq}">[[${dto.like_count}]]</span>개 <br>
+                    <span class="Viewpost-time">게시물 작성 경과된 시간</span>
+                </div>
+
+                <div class="comment-section">
+                    <div class="form-group">
+                        <div class="bottom-controls">
+                            <div class="emoji-picker-wrapper">
+                                <img src="img/imo.png" alt="imo" class="view_emoji-toggle" onclick="toggleEmojiPicker()">
+                                <div id="emojiPicker" class="view_emoji-picker">
+                                    <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f600.png" alt="😀" onclick="insertEmoji('😀')">
+                                    <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f602.png" alt="😂" onclick="insertEmoji('😂')">
+                                    <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/2764.png" alt="❤️" onclick="insertEmoji('❤️')">
+                                    <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f525.png" alt="🔥" onclick="insertEmoji('🔥')">
+                                    <img src="https://cdn.jsdelivr.net/emojione/assets/4.5/png/32/1f44d.png" alt="👍" onclick="insertEmoji('👍')">
+                                    <!-- Add more emojis as needed -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="postId" th:value="${dto.seq}">
+                <input type="hidden" id="userid" th:value="${from_user}">
+                    <input type="text" id="commentInput" class="comment-input" placeholder="댓글 달기...">
+                    <button id="addCommentButton" class="add-comment-button" style="font-weight:bold; background-color:transparent; color:#007bff; border: 2px solid transparent;">게시</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
